@@ -27,13 +27,20 @@ let setup = (assetDir, env) => {
   let platforms = [];
   /* Step.randomPlatforms(width, height); */
 
+  let (walls, (px, py)) = Step.makeMaze();
+
   /* let start = List.nth(platforms, 10); */
   {
     status: Start,
-    user: (0., 0., 0., 0.),
+    player: {
+      x: px,
+      y: py,
+      dx: 0.,
+      dy: 0.,
+    },
     /* (start.x, start.y -. 10., 0., 0.), */
     prevInput: NoInput,
-    walls: Step.makeMaze(),
+    walls,
     height,
     width,
     Shared.titleFont: Reprocessing.Draw.loadFont( ~filename=assetDir /+ "Orbitron-Black-48.fnt", ~isPixel=false, env),

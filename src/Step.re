@@ -27,7 +27,8 @@ let makeMaze = () => {
   let state = Man.loop_to_end(state);
 
   let walls = Man.all_walls(state);
-  walls
+  let player = Man.randomCoord(state);
+  (walls, player)
 };
 
 let newGame = state => state;

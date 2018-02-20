@@ -11,9 +11,11 @@ type status =
   | Playing(float)
   | Done(float);
 
+type player = {x: float, y: float, dx: float, dy: float};
+
 type context = {
   walls: list(Mazer.Border.t),
-  user: (float, float, float, float),
+  player,
   status,
   height: float,
   width: float,
