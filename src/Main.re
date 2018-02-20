@@ -22,12 +22,14 @@ let setup = (assetDir, env) => {
     }
   }; */
 
+  Random.self_init();
+  Random.init(100);
   let height = Reprocessing.Env.height(env) |> float_of_int;
   let width = Reprocessing.Env.width(env) |> float_of_int;
   let platforms = [];
   /* Step.randomPlatforms(width, height); */
 
-  let (walls, (px, py)) = Step.makeMaze();
+  let (walls, (px, py), target) = Step.makeMaze();
 
   /* let start = List.nth(platforms, 10); */
   {
@@ -38,6 +40,7 @@ let setup = (assetDir, env) => {
       dx: 0.,
       dy: 0.,
     },
+    target,
     /* (start.x, start.y -. 10., 0., 0.), */
     prevInput: NoInput,
     walls,

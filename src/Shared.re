@@ -16,6 +16,7 @@ type player = {x: float, y: float, dx: float, dy: float};
 type context = {
   walls: list(Mazer.Border.t),
   player,
+  target: (float, float),
   status,
   height: float,
   width: float,
