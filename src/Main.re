@@ -23,15 +23,13 @@ let setup = (assetDir, env) => {
   }; */
 
   Random.self_init();
-  Random.init(100);
+  /* Random.init(100); */
   let height = Reprocessing.Env.height(env) |> float_of_int;
   let width = Reprocessing.Env.width(env) |> float_of_int;
-  let platforms = [];
-  /* Step.randomPlatforms(width, height); */
 
+  Js.log2("Random", Random.int(10));
   let (walls, (px, py), target) = Step.makeMaze();
 
-  /* let start = List.nth(platforms, 10); */
   {
     status: Start,
     player: {
@@ -41,9 +39,9 @@ let setup = (assetDir, env) => {
       dy: 0.,
     },
     target,
-    /* (start.x, start.y -. 10., 0., 0.), */
     prevInput: NoInput,
     walls,
+
     height,
     width,
     Shared.titleFont: Reprocessing.Draw.loadFont( ~filename=assetDir /+ "Orbitron-Black-48.fnt", ~isPixel=false, env),
