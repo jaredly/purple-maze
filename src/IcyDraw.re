@@ -2,7 +2,9 @@ open Shared;
 open Reprocessing;
 
 let draw = ({textFont, player, walls, target, status, width, height}, env) => {
-  Draw.background(Constants.white, env);
+  Draw.background(Constants.red, env);
+  Draw.fill(Constants.white, env);
+  Draw.ellipsef(~center=(player.x, player.y), ~radx=50., ~rady=50., env);
   Draw.stroke(Constants.red, env);
   List.iter(DrawMaze.draw_wall(env, (0., 0.)), walls);
   Draw.fill(Constants.red, env);

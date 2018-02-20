@@ -99,11 +99,4 @@ let step = ({player, walls, target} as state, env) => {
   } else {
     {...state, player: {x, y, dx, dy}}
   }
-  /* let distance = getDistance(state.status);
-  switch (state.status) {
-  | Playing(distance) => {
-    gameStep(distance, state, env)
-  }
-  | _ => state
-  } */
 };
