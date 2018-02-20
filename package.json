@@ -1,0 +1,31 @@
+{
+  "name": "icytower",
+  "version": "0.0.1",
+  "scripts": {
+    "start": "rsb native:hot",
+    "native": "rsb native",
+    "bundle": "rsb native:bundle",
+    "all": "rsb all",
+    "android": "rsb android",
+    "android:run": "rsb android:run",
+    "android:hot": "rsb android:hot",
+    "ios": "rsb ios",
+    "ios:sim": "rsb ios:sim",
+    "ios:device": "rsb ios:device",
+    "js": "rsb js",
+    "serve": "rsb js:serve",
+    "clean": "rm -rf _build && bsb -clean-world"
+  },
+  "keywords": [
+    "BuckleScript"
+  ],
+  "author": "",
+  "license": "",
+  "devDependencies": {
+    "bs-platform": "bsansouci/bsb-native#fast",
+    "reprocessing-scripts": "1.3.4"
+  },
+  "dependencies": {
+    "@jaredly/reprocessing": "1.1.4"
+  }
+}
