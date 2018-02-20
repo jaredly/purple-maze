@@ -7,7 +7,8 @@ let setup = (assetDir, env) => {
     Reprocessing.Env.resizeable(false, env);
   };
 
-  if (!Shared.isPhone) {
+  Reprocessing.Env.size(~width=500, ~height=500, env);
+  /* if (!Shared.isPhone) {
     let size = min(Reprocessing.Env.maxHeight(env), 800);
     Reprocessing.Env.size(~width=size / 2, ~height=size, env);
   } else if (Shared.fakePhone) {
@@ -19,18 +20,20 @@ let setup = (assetDir, env) => {
     | Some(_)
     | None => Reprocessing.Env.size(~width=340, ~height=640, env)
     }
-  };
+  }; */
 
   let height = Reprocessing.Env.height(env) |> float_of_int;
   let width = Reprocessing.Env.width(env) |> float_of_int;
-  let platforms = Step.randomPlatforms(width, height);
+  let platforms = [];
+  /* Step.randomPlatforms(width, height); */
 
-  let start = List.nth(platforms, 10);
+  /* let start = List.nth(platforms, 10); */
   {
     status: Start,
-    user: (start.x, start.y -. 10., 0., 0.),
+    user: (0., 0., 0., 0.),
+    /* (start.x, start.y -. 10., 0., 0.), */
     prevInput: NoInput,
-    platforms,
+    walls: Step.makeMaze(),
     height,
     width,
     Shared.titleFont: Reprocessing.Draw.loadFont( ~filename=assetDir /+ "Orbitron-Black-48.fnt", ~isPixel=false, env),

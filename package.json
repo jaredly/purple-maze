@@ -1,5 +1,5 @@
 {
-  "name": "icytower",
+  "name": "purplemaze",
   "version": "0.0.1",
   "scripts": {
     "start": "rsb native:hot",
@@ -26,6 +26,7 @@
     "reprocessing-scripts": "1.3.4"
   },
   "dependencies": {
-    "@jaredly/reprocessing": "1.1.4"
+    "@jaredly/reprocessing": "1.1.4",
+    "mazer": "file:../mazer"
   }
 }

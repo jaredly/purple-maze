@@ -1,9 +1,11 @@
 open Shared;
 open Reprocessing;
 
-let draw = ({textFont, user, platforms, status, width, height}, env) => {
+let draw = ({textFont, user, walls, status, width, height}, env) => {
   Draw.background(Constants.white, env);
-  Draw.fill(Constants.red, env);
+  Draw.stroke(Constants.red, env);
+  List.iter(DrawMaze.draw_wall(env, (10., 10.)), walls);
+  /* Draw.fill(Constants.red, env);
   let distance = getDistance(status);
   List.iter(
     ({x, y, w}) => {
@@ -17,6 +19,6 @@ let draw = ({textFont, user, platforms, status, width, height}, env) => {
   Draw.rectf(~pos=(x, (y +. distance)), ~width=10., ~height=10., env);
   Draw.tint(Constants.black, env);
   Draw.text(~font=textFont, ~pos=(10, 10), ~body=string_of_int(int_of_float(distance)), env);
-  Draw.noTint(env);
+  Draw.noTint(env); */
   ()
 };

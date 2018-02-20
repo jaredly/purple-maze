@@ -12,7 +12,7 @@ type status =
   | Done(float);
 
 type context = {
-  platforms: list(platform),
+  walls: list(Mazer.Border.t),
   user: (float, float, float, float),
   status,
   height: float,
