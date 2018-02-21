@@ -1,4 +1,6 @@
 
+Printexc.record_backtrace(true);
+
 let getEnv = name => try { Some(Sys.getenv(name)) } { | Not_found => None };
 
 let (/+) = Filename.concat;
@@ -31,7 +33,7 @@ let setup = (assetDir, env) => {
   let (walls, (px, py), target, tileCenter) = Step.makeMaze();
 
   {
-    status: Playing({
+    status: AnimateIn(None, {
       tileCenter,
       player: {
         x: px,
@@ -46,7 +48,7 @@ let setup = (assetDir, env) => {
       throwTimer: Timer.createFull(10.),
       throwing: None,
       time: 0.,
-    }),
+    }, Timer.createEmpty(Shared.animateTime)),
 
     height,
     width,

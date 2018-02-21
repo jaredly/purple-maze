@@ -37,8 +37,11 @@ type state = {
   time: float,
 };
 
+let animateTime = 3.;
+
 type status =
   | Start
+  | AnimateIn(option(state), state, Timer.t)
   | Playing(state)
   | Done(float);
 

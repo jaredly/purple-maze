@@ -154,8 +154,10 @@ let step = ({player, walls, target} as state, env) => {
 };
 
 let step = ({status} as context, env) => {
-  switch status {
-  | Playing(state) => {...context, status: Playing(step(state, env))}
-  | _ => context
-  }
+  {...context, status: switch status {
+  | Playing(state) => Playing(step(state, env))
+  | AnimateIn(prevState, state, timer) when Timer.isFull(timer) => Playing(state)
+  | AnimateIn(prevState, state, timer) => AnimateIn(prevState, state, Timer.inc(timer, env))
+  | _ => status
+  }}
 };
