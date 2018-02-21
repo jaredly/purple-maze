@@ -20,9 +20,10 @@ let draw = ({player, walls, target, throwTimer, throwing}, {textFont, width, hei
   | None => ()
   | Some((timer, height)) => {
     let percent = Timer.percent(timer);
-    let height = max(0.01, height *. sin(percent *. 3.14159));
+    let p = sqrt(sin(percent *. 3.14159));
+    let top = 70. +. 100. *. height;
     /* let percent = 1.; */
-    let full = 170. *. height;
+    let full = top *. p;
 
     Draw.fill(Utils.color(~r=255, ~g=200, ~b=255, ~a=255), env);
     let size = full;

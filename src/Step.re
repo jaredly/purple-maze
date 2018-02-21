@@ -81,7 +81,7 @@ let step = ({player, walls, target} as state, env) => {
     {
       ...state,
       throwTimer: Timer.restart(state.throwTimer),
-      throwing: Some((Timer.createEmpty(height *. 1.), height))
+      throwing: Some((Timer.createEmpty(height *. 2.), height))
     }
   } else {
     state
