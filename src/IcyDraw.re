@@ -3,15 +3,17 @@ open Reprocessing;
 
 let purple = Reprocessing.Utils.color(~r=255, ~g=0, ~b=255, ~a=255);
 let darker = Reprocessing.Utils.color(~r=200, ~g=0, ~b=255, ~a=255);
+let background = Utils.color(~r=255, ~g=220, ~b=255, ~a=255);
 
 Printexc.record_backtrace(true);
 
 let draw = ({player, walls, target, throwTimer, throwing}, {textFont, width, height}, env) => {
   Draw.background(purple, env);
+  Draw.strokeWeight(3, env);
 
   /** your personal light */
   /* Draw.fill(Constants.white, env); */
-  Draw.fill(Utils.color(~r=255, ~g=220, ~b=255, ~a=255), env);
+  Draw.fill(background, env);
   let light = 80.;
   Draw.ellipsef(~center=(player.x, player.y), ~radx=light, ~rady=light, env);
 
@@ -42,11 +44,13 @@ let draw = ({player, walls, target, throwTimer, throwing}, {textFont, width, hei
   Draw.ellipsef(~center=(player.x, player.y), ~radx=Shared.playerSize, ~rady=Shared.playerSize, env);
 
   /* The target */
-  Draw.fill(Constants.black, env);
-  Draw.noStroke(env);
+  Draw.stroke(background, env);
+  Draw.strokeWeight(5, env);
+  Draw.fill(purple, env);
   Draw.ellipsef(~center=target, ~radx=Shared.playerSize, ~rady=Shared.playerSize, env);
 
 
+  Draw.strokeWeight(3, env);
   Draw.noFill(env);
   Draw.stroke(Constants.black, env);
   Draw.rectf(~pos=(0., 0.), ~width=20., ~height=100., env);
