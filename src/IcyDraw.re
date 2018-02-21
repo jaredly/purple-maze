@@ -3,6 +3,7 @@ open Reprocessing;
 
 let purple = Reprocessing.Utils.color(~r=255, ~g=0, ~b=255, ~a=255);
 let darker = Reprocessing.Utils.color(~r=200, ~g=0, ~b=255, ~a=255);
+let shadow = Reprocessing.Utils.color(~r=150, ~g=0, ~b=200, ~a=100);
 let background = Utils.color(~r=255, ~g=220, ~b=255, ~a=255);
 let pathColor = Utils.color(~r=255, ~g=240, ~b=255, ~a=255);
 let pathColor = Utils.color(~r=255, ~g=100, ~b=255, ~a=255);
@@ -20,15 +21,27 @@ let drawPower = (throwTimer, env) => {
   Draw.rectf(~pos=(10., 110. -. height), ~width=20., ~height=height, env);
 };
 
-let drawJump = ({throwing, player}, env) => {
+let drawPlayerShadow = ({player}, offset, env) => {
+  Draw.noStroke(env);
+  Draw.fill(shadow, env);
+  let off = offset *. Shared.playerSize *. 5.;
+  let size = Shared.playerSize;
+  Draw.ellipsef(~center=(player.x +. off *. -0.3, player.y +. off), ~radx=size, ~rady=size, env);
+};
+
+let jumpPercent = ((timer, height)) => {
+  let percent = Timer.percent(timer);
+  sqrt(sin(percent *. 3.14159)) *. height;
+};
+
+let drawJump = ({throwing, player} as state, env) => {
   /** Thrown light */
   switch throwing {
   | None => ()
   | Some((timer, height)) => {
-    let percent = Timer.percent(timer);
-    let p = sqrt(sin(percent *. 3.14159));
-    let top = 140. +. 200. *. height;
-    let full = top *. p;
+    let p = jumpPercent((timer, height));
+    let top = 80. +. 200. *. p;
+    let full = top;
 
     Draw.fill(background, env);
     let size = full;
@@ -55,10 +68,10 @@ let drawPath = (state, env) => {
   state.path |> Shared.LineSet.iter(((p1, p2)) => Draw.linef(~p1, ~p2, env));
 };
 
-let drawPlayer = ({player}, env) => {
+let drawPlayer = ({player}, scale, env) => {
   Draw.noStroke(env);
   Draw.fill(darker, env);
-  Draw.ellipsef(~center=(player.x, player.y), ~radx=Shared.playerSize, ~rady=Shared.playerSize, env);
+  Draw.ellipsef(~center=(player.x, player.y), ~radx=Shared.playerSize *. scale, ~rady=Shared.playerSize *. scale, env);
 };
 
 let drawGoal = ({target}, env) => {
@@ -74,7 +87,15 @@ let draw = ({player, walls, target, throwTimer, throwing, path} as state, {textF
   drawJump(state, env);
   drawWalls(state, env);
   drawPath(state, env);
-  drawPlayer(state, env);
+  drawPlayer(state, switch throwing {
+  | None => 1.
+  | Some((timer, height)) => {
+    let p =jumpPercent((timer, height));
+
+    drawPlayerShadow(state, p, env);
+    1. +. p
+  }
+  }, env);
   drawGoal(state, env);
   drawPower(throwTimer, env);
 
@@ -91,7 +112,8 @@ let draw = ({status} as context, env) => {
       let size = (1000. -. 80.) *. an +. 80.;
       drawLights(state, size, env);
       drawWalls(state, env);
-      drawPlayer(state, env);
+      drawPlayerShadow(state, an, env);
+      drawPlayer(state, an +. 1., env);
       drawGoal(state, env);
       drawPower(state.throwTimer, env);
 

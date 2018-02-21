@@ -37,7 +37,7 @@ type state = {
   time: float,
 };
 
-let animateTime = 3.;
+let animateTime = 2.;
 
 type status =
   | Start

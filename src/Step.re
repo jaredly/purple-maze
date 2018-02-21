@@ -89,19 +89,7 @@ let dist = ((x, y), (px, py)) => sqrt((px -. x) *. (px -. x) +. (py -. y) *. (py
 
 let normalizePath = (p1, p2) => p1 > p2 ? (p1, p2) : (p2, p1);
 
-let step = ({player, walls, target} as state, env) => {
-
-  let state = if (Env.keyPressed(Events.Space, env) && Timer.percent(state.throwTimer) > 0.1) {
-    let height = Timer.percent(state.throwTimer);
-    {
-      ...state,
-      throwTimer: Timer.restart(state.throwTimer),
-      throwing: Some((Timer.createEmpty(height *. 2.), height))
-    }
-  } else {
-    state
-  };
-
+let movePlayer = ({player, walls}, env) => {
 
   let (ax, ay, any) = List.fold_left(
     ((dx, dy, any), (k, (ax, ay))) => {
@@ -122,6 +110,27 @@ let step = ({player, walls, target} as state, env) => {
   let (dx, dy) = collide(player.x, player.y, dx, dy, walls);
   let x = player.x +. dx;
   let y = player.y +. dy;
+  {x, y, dx, dy}
+};
+
+let step = ({player, walls, target} as state, env) => {
+
+  let state = if (Env.keyPressed(Events.Space, env) && Timer.percent(state.throwTimer) > 0.1) {
+    let height = Timer.percent(state.throwTimer);
+    {
+      ...state,
+      throwTimer: Timer.restart(state.throwTimer),
+      throwing: Some((Timer.createEmpty(height *. 2.), height)),
+      player: {...player, dx: 0., dy: 0.}
+    }
+  } else {
+    state
+  };
+
+  let player = switch state.throwing {
+  | None => movePlayer(state, env);
+  | _ => state.player
+  };
 
   let state = {
     ...state,
@@ -133,7 +142,7 @@ let step = ({player, walls, target} as state, env) => {
     }
   };
 
-  let pos = state.tileCenter((x, y));
+  let pos = state.tileCenter((player.x, player.y));
   /* Printf.printf("%f, %f - %f %f\n", fst(pos), snd(pos), x, y); */
   /* Format.print_flush(); */
   let state = if (pos != state.currentPos) {
@@ -146,16 +155,20 @@ let step = ({player, walls, target} as state, env) => {
     state
   };
 
-  if (dist(target, (x, y)) < Shared.playerSize *. 2.) {
-    newGame(state)
+  if (dist(target, (player.x, player.y)) < Shared.playerSize *. 2.) {
+    AnimateIn(Some(state), newGame(state), Timer.createEmpty(Shared.animateTime));
   } else {
-    {...state, player: {x, y, dx, dy}}
+    Playing({...state, player})
   }
 };
 
 let step = ({status} as context, env) => {
   {...context, status: switch status {
-  | Playing(state) => Playing(step(state, env))
+  | Playing(state) => if (Env.keyPressed(Events.Escape, env)) {
+    AnimateIn(None, newGame(state), Timer.createEmpty(Shared.animateTime));
+  } else {
+    step(state, env)
+  }
   | AnimateIn(prevState, state, timer) when Timer.isFull(timer) => Playing(state)
   | AnimateIn(prevState, state, timer) => AnimateIn(prevState, state, Timer.inc(timer, env))
   | _ => status
