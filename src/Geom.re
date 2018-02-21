@@ -1,4 +1,32 @@
 
+module Ease = {
+  let linear = t => t;
+  /* // accelerating from zero velocity */
+  let easeInQuad = t => t *. t;
+  /* // decelerating to zero velocity */
+  let easeOutQuad = t => t*. (2. -. t);
+  /* // acceleration until halfway, then deceleration */
+  let easeInOutQuad = (t) => t<0.5 ? 2. *. t*. t : -1. +. (4. -. 2. *. t)*. t;
+  /* // accelerating from zero velocity  */
+  /* easeInCubic: function (t) { return t*t*t },
+  // decelerating to zero velocity
+  easeOutCubic: function (t) { return (--t)*t*t+1 },
+  // acceleration until halfway, then deceleration
+  easeInOutCubic: function (t) { return t<.5 ? 4*t*t*t : (t-1)*(2*t-2)*(2*t-2)+1 },
+  // accelerating from zero velocity
+  easeInQuart: function (t) { return t*t*t*t },
+  // decelerating to zero velocity
+  easeOutQuart: function (t) { return 1-(--t)*t*t*t },
+  // acceleration until halfway, then deceleration
+  easeInOutQuart: function (t) { return t<.5 ? 8*t*t*t*t : 1-8*(--t)*t*t*t },
+  // accelerating from zero velocity
+  easeInQuint: function (t) { return t*t*t*t*t },
+  // decelerating to zero velocity
+  easeOutQuint: function (t) { return 1+(--t)*t*t*t*t },
+  // acceleration until halfway, then deceleration
+  easeInOutQuint: function (t) { return t<.5 ? 16*t*t*t*t*t : 1+16*(--t)*t*t*t*t } */
+};
+
 type point = {x: float, y: float};
 type vector = {magnitude: float, theta: float};
 let v0 = {magnitude: 0., theta: 0.};
@@ -31,6 +59,12 @@ let addPectorToVector = (p, v) => addPectors(p, vectorToPector(v)) |> pectorToVe
 let invertVector = ({magnitude, theta}) => {magnitude, theta: theta +. 3.14159};
 let invertPector = ({dx, dy}) => {dx: -.dx, dy: -.dy};
 let scaleVector = ({magnitude, theta}, scale) => {theta, magnitude: magnitude *. scale};
+
+let lerpPos = (p1, p2, amount) => {
+  let dx = p2.x -. p1.x;
+  let dy = p2.y -. p1.y;
+  {x: p1.x +. dx *. amount, y: p1.y +. dy *. amount}
+};
 
 module Circle = {
   type t = {rad: float, center: point};

@@ -1,9 +1,9 @@
 open Shared;
 open Reprocessing;
 
-let makeMaze = () => {
-  /* let module Board = Mazere.NewRect; */
-  let module Board = Mazere.TriangleBoard;
+let makeMaze = (curPos) => {
+  let module Board = Mazere.NewRect;
+  /* let module Board = Mazere.TriangleBoard; */
   let module Alg = Mazere.NewDepth.F(Mazere.NewDepth.RandomConfig({}));
 
   let module Man = Mazere.Manager.F(Board, Alg);
@@ -18,19 +18,23 @@ let makeMaze = () => {
   let state = Man.loop_to_end(state);
 
   let walls = Man.all_walls(state);
-  let player = Man.randomCoord(state);
+  let tileCenter = (pos) => Board.tile_center(state.shape, state.scale, Board.from_point(state.shape, state.scale, pos));
+  let player = switch curPos {
+  | Some(pos) => tileCenter(Geom.tuple(pos))
+  | None => Man.randomCoord(state);
+  };
+  let goal = Man.randomCoord(state);
 
   /* let maze = Maze({
     state,
     tileCenter: (state, pos) => Board.tile_center(state.shape, state.scale, Board.from_point(state.shape, state.scale, pos))
   }); */
-  let tileCenter = (pos) => Board.tile_center(state.shape, state.scale, Board.from_point(state.shape, state.scale, pos));
 
-  (walls, player, Man.randomCoord(state), tileCenter);
+  (walls, player, goal, tileCenter);
 };
 
 let newGame = state => {
-  let (walls, (px, py), target, tileCenter) = makeMaze();
+  let (walls, (px, py), target, tileCenter) = makeMaze(Some(state.player.pos));
   {...state,
     walls,
     player: {pos: {Geom.x: px, y: py}, vel: Geom.v0}, target,
@@ -117,7 +121,8 @@ let movePlayer = ({player: {pos, vel}, walls}, env) => {
   let slow = 0.8;
   let med = 0.9;
   let acc = Geom.pectorToVector({Geom.dx: ax, dy: ay});
-  let vel = acc.Geom.magnitude < 0.001 ? Geom.scaleVector(vel, slow) : Geom.addVectors(vel, acc);
+  let vel = acc.Geom.magnitude < 0.001 ? vel : Geom.addVectors(vel, acc);
+  let vel = Geom.scaleVector(vel, med);
   let vel = Geom.clampVector(vel, maxSpeed);
   /* let dx = ax == 0. ? player.dx *. slow : max(min(maxSpeed, player.dx +. ax), -. maxSpeed) *. med;
   let dy = ay == 0. ? player.dy *. slow : max(min(maxSpeed, player.dy +. ay), -. maxSpeed) *. med; */
