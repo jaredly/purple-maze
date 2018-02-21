@@ -6,30 +6,29 @@ type platform = {x: float, y: float, w: float};
 
 type input = Left | Right | NoInput;
 
-type status =
-  | Start
-  | Playing(float)
-  | Done(float);
-
 type player = {x: float, y: float, dx: float, dy: float};
 
-type context = {
-  walls: list(Mazer.Border.t),
+type state = {
+  walls: list(Mazere.Border.t),
   player,
   target: (float, float),
+  throwTimer: Timer.t,
+  throwing: option((Timer.t, float)),
+  time: float,
+};
+
+type status =
+  | Start
+  | Playing(state)
+  | Done(float);
+
+type context = {
   status,
   height: float,
   width: float,
-  prevInput: input,
   smallFont: Reprocessing.fontT,
   textFont: Reprocessing.fontT,
   titleFont: Reprocessing.fontT,
   boldTextFont: Reprocessing.fontT,
   smallTitleFont: Reprocessing.fontT,
-};
-
-let getDistance = status => switch status {
-| Playing(d) => d
-| Done(d) => d
-| Start => 0.
 };

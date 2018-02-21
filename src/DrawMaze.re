@@ -1,8 +1,8 @@
 
   let draw_wall = (ctx, (xm, ym), wall) =>
     switch wall {
-    | Mazer.Border.Line(((x, y), (a, b))) => Reprocessing.Draw.linef(~p1=(x +. xm, y +. ym), ~p2=(a +. xm, b +. ym), ctx)
-    | Mazer.Border.Arc((x, y, r, t1, t2)) =>
+    | Mazere.Border.Line(((x, y), (a, b))) => Reprocessing.Draw.linef(~p1=(x +. xm, y +. ym), ~p2=(a +. xm, b +. ym), ctx)
+    | Mazere.Border.Arc((x, y, r, t1, t2)) =>
       assert(false)
       /* Reprocessing.Draw.arcf
       Ctx.beginPath(ctx);

@@ -8,7 +8,7 @@
   "sources": [
     "src",
   ],
-  "bs-dependencies": ["@jaredly/reprocessing", "mazer"],
+  "bs-dependencies": ["@jaredly/reprocessing", "maze.re"],
   "package-specs": ["commonjs", "es6"],
   "entries": [{
     "backend": "bytecode",

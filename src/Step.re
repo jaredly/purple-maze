@@ -2,10 +2,10 @@ open Shared;
 open Reprocessing;
 
 let makeMaze = () => {
-  let module Board = Mazer.NewRect;
-  let module Alg = Mazer.NewDepth.F(Mazer.NewDepth.RandomConfig({}));
+  let module Board = Mazere.NewRect;
+  let module Alg = Mazere.NewDepth.F(Mazere.NewDepth.RandomConfig({}));
 
-  let module Man = Mazer.Manager.F(Board, Alg);
+  let module Man = Mazere.Manager.F(Board, Alg);
 
   Man.randInit();
   let (width, height) = (500., 500.);
@@ -23,7 +23,9 @@ let makeMaze = () => {
 
 let newGame = state => {
   let (walls, (px, py), target) = makeMaze();
-  {...state, walls, player: {x: px, y: py, dx: 0., dy: 0.}, target}
+  {...state, walls, player: {x: px, y: py, dx: 0., dy: 0.}, target,
+    throwTimer: Timer.fill(state.throwTimer)
+  }
 };
 
 let speed = 0.5;
@@ -48,7 +50,7 @@ let lineRect = ((a, b), (c, d), stroke) => {
 let collide = (x, y, dx, dy, walls) => {
   List.fold_left(
     ((dx, dy), wall) => switch wall {
-    | Mazer.Border.Arc(_) => assert(false)
+    | Mazere.Border.Arc(_) => assert(false)
     | Line((p1, p2)) => {
       let (pos, w, h) = lineRect(p1, p2, 6.);
       let intersect = Reprocessing.Utils.intersectRectCircle(~rectPos=pos, ~rectH=h, ~rectW=w, ~circleRad=10.);
@@ -74,6 +76,18 @@ let dist = ((x, y), (px, py)) => sqrt((px -. x) *. (px -. x) +. (py -. y) *. (py
 
 let step = ({player, walls, target} as state, env) => {
 
+  let state = if (Env.keyPressed(Events.Space, env) && Timer.percent(state.throwTimer) > 0.1) {
+    let height = Timer.percent(state.throwTimer);
+    {
+      ...state,
+      throwTimer: Timer.restart(state.throwTimer),
+      throwing: Some((Timer.createEmpty(height *. 1.), height))
+    }
+  } else {
+    state
+  };
+
+
   let (ax, ay, any) = List.fold_left(
     ((dx, dy, any), (k, (ax, ay))) => {
       if (Env.key(k, env)) {
@@ -94,9 +108,26 @@ let step = ({player, walls, target} as state, env) => {
   let x = player.x +. dx;
   let y = player.y +. dy;
 
+  let state = {
+    ...state,
+    throwTimer: Timer.inc(state.throwTimer, env),
+    throwing: switch state.throwing {
+    | None => None
+    | Some((timer, height)) when Timer.isFull(timer) => None
+    | Some((timer, height)) => Some((Timer.inc(timer, env), height))
+    }
+  };
+
   if (dist(target, (x, y)) < 20.) {
     newGame(state)
   } else {
     {...state, player: {x, y, dx, dy}}
+  }
+};
+
+let step = ({status} as context, env) => {
+  switch status {
+  | Playing(state) => {...context, status: Playing(step(state, env))}
+  | _ => context
   }
 };

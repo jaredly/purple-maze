@@ -27,6 +27,6 @@
   },
   "dependencies": {
     "@jaredly/reprocessing": "1.1.4",
-    "mazer": "file:../mazer"
+    "maze.re": "0.0.1"
   }
 }

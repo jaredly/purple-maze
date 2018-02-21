@@ -27,20 +27,23 @@ let setup = (assetDir, env) => {
   let height = Reprocessing.Env.height(env) |> float_of_int;
   let width = Reprocessing.Env.width(env) |> float_of_int;
 
-  Js.log2("Random", Random.int(10));
+  /* Js.log2("Random", Random.int(10)); */
   let (walls, (px, py), target) = Step.makeMaze();
 
   {
-    status: Start,
-    player: {
-      x: px,
-      y: py,
-      dx: 0.,
-      dy: 0.,
-    },
-    target,
-    prevInput: NoInput,
-    walls,
+    status: Playing({
+      player: {
+        x: px,
+        y: py,
+        dx: 0.,
+        dy: 0.,
+      },
+      target,
+      walls,
+      throwTimer: Timer.createFull(10.),
+      throwing: None,
+      time: 0.,
+    }),
 
     height,
     width,
@@ -60,13 +63,6 @@ let draw = (state, env) => {
 
 let run = (assetDir, _) => Reprocessing.run(
   ~setup=setup(assetDir),
-  ~mouseDown=((state, env) => {
-    switch (state.status) {
-    | Start => {...state, status: Playing(0.)}
-    | Done(_) => Step.newGame(state)
-    | _ => state
-    }
-  }),
   ~draw,
   ()
 );
