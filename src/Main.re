@@ -28,10 +28,11 @@ let setup = (assetDir, env) => {
   let width = Reprocessing.Env.width(env) |> float_of_int;
 
   /* Js.log2("Random", Random.int(10)); */
-  let (walls, (px, py), target) = Step.makeMaze();
+  let (walls, (px, py), target, tileCenter) = Step.makeMaze();
 
   {
     status: Playing({
+      tileCenter,
       player: {
         x: px,
         y: py,

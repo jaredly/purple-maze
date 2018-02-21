@@ -18,12 +18,23 @@ let makeMaze = () => {
 
   let walls = Man.all_walls(state);
   let player = Man.randomCoord(state);
-  (walls, player, Man.randomCoord(state));
+
+  /* let maze = Maze({
+    state,
+    tileCenter: (state, pos) => Board.tile_center(state.shape, state.scale, Board.from_point(state.shape, state.scale, pos))
+  }); */
+  let tileCenter = (pos) => Board.tile_center(state.shape, state.scale, Board.from_point(state.shape, state.scale, pos));
+
+  (walls, player, Man.randomCoord(state), tileCenter);
 };
 
 let newGame = state => {
-  let (walls, (px, py), target) = makeMaze();
-  {...state, walls, player: {x: px, y: py, dx: 0., dy: 0.}, target,
+  let (walls, (px, py), target, tileCenter) = makeMaze();
+  {...state,
+    walls,
+    player: {x: px, y: py, dx: 0., dy: 0.}, target,
+    tileCenter,
+    /* maze, */
     throwTimer: Timer.fill(state.throwTimer)
   }
 };
