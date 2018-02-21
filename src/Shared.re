@@ -19,8 +19,15 @@ let playerSize = 20.;
 
 type mazeG = | Maze(maze('state, 'coord)): mazeG; */
 
+let module LineSet = Set.Make({
+  type t = ((float, float), (float, float));
+  let compare = compare;
+});
+
 type state = {
   walls: list(Mazere.Border.t),
+  path: LineSet.t,
+  currentPos: (float, float),
   tileCenter: ((float, float)) => (float, float),
   /* maze: mazeG, */
   player,

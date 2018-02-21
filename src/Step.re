@@ -33,6 +33,8 @@ let newGame = state => {
   {...state,
     walls,
     player: {x: px, y: py, dx: 0., dy: 0.}, target,
+    path: Shared.LineSet.empty,
+    currentPos: (px, py),
     tileCenter,
     /* maze, */
     throwTimer: Timer.fill(state.throwTimer)
@@ -85,6 +87,8 @@ let collide = (x, y, dx, dy, walls) => {
 
 let dist = ((x, y), (px, py)) => sqrt((px -. x) *. (px -. x) +. (py -. y) *. (py -. y));
 
+let normalizePath = (p1, p2) => p1 > p2 ? (p1, p2) : (p2, p1);
+
 let step = ({player, walls, target} as state, env) => {
 
   let state = if (Env.keyPressed(Events.Space, env) && Timer.percent(state.throwTimer) > 0.1) {
@@ -127,6 +131,19 @@ let step = ({player, walls, target} as state, env) => {
     | Some((timer, height)) when Timer.isFull(timer) => None
     | Some((timer, height)) => Some((Timer.inc(timer, env), height))
     }
+  };
+
+  let pos = state.tileCenter((x, y));
+  /* Printf.printf("%f, %f - %f %f\n", fst(pos), snd(pos), x, y); */
+  /* Format.print_flush(); */
+  let state = if (pos != state.currentPos) {
+    {
+      ...state,
+      currentPos: pos,
+      path: Shared.LineSet.add(normalizePath(state.currentPos, pos), state.path)
+    }
+  } else {
+    state
   };
 
   if (dist(target, (x, y)) < Shared.playerSize *. 2.) {

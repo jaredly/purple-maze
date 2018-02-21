@@ -41,6 +41,8 @@ let setup = (assetDir, env) => {
       },
       target,
       walls,
+      path: Shared.LineSet.empty,
+      currentPos: (px, py),
       throwTimer: Timer.createFull(10.),
       throwing: None,
       time: 0.,

@@ -4,10 +4,11 @@ open Reprocessing;
 let purple = Reprocessing.Utils.color(~r=255, ~g=0, ~b=255, ~a=255);
 let darker = Reprocessing.Utils.color(~r=200, ~g=0, ~b=255, ~a=255);
 let background = Utils.color(~r=255, ~g=220, ~b=255, ~a=255);
+let pathColor = Utils.color(~r=255, ~g=240, ~b=255, ~a=255);
 
 Printexc.record_backtrace(true);
 
-let draw = ({player, walls, target, throwTimer, throwing}, {textFont, width, height}, env) => {
+let draw = ({player, walls, target, throwTimer, throwing, path}, {textFont, width, height}, env) => {
   Draw.background(purple, env);
   Draw.strokeWeight(3, env);
 
@@ -37,6 +38,11 @@ let draw = ({player, walls, target, throwTimer, throwing}, {textFont, width, hei
   /* Now the walls */
   Draw.stroke(purple, env);
   List.iter(DrawMaze.draw_wall(env, (0., 0.)), walls);
+
+  Draw.stroke(pathColor, env);
+  path |> Shared.LineSet.iter(
+    ((p1, p2)) => Draw.linef(~p1, ~p2, env)
+  );
 
   /* Now you */
   Draw.noStroke(env);
