@@ -2,7 +2,8 @@ open Shared;
 open Reprocessing;
 
 let makeMaze = () => {
-  let module Board = Mazere.NewRect;
+  /* let module Board = Mazere.NewRect; */
+  let module Board = Mazere.TriangleBoard;
   let module Alg = Mazere.NewDepth.F(Mazere.NewDepth.RandomConfig({}));
 
   let module Man = Mazere.Manager.F(Board, Alg);
@@ -32,7 +33,7 @@ let newGame = state => {
   let (walls, (px, py), target, tileCenter) = makeMaze();
   {...state,
     walls,
-    player: {x: px, y: py, dx: 0., dy: 0.}, target,
+    player: {pos: {Geom.x: px, y: py}, vel: Geom.v0}, target,
     path: Shared.LineSet.empty,
     currentPos: (px, py),
     tileCenter,
@@ -51,21 +52,31 @@ let keys = [
 
 let maxSpeed = 7.;
 
-let lineRect = ((a, b), (c, d), stroke) => {
+/* let lineRect = ((a, b), (c, d), stroke) => {
   let hs = stroke /. 2.;
   if (a <= c && b <= d) {
     ((a -. hs, b -. hs), (max(c -. a, stroke)), max(d -. b, stroke))
   } else {
     ((c -. hs, d -. hs), (max(a -. c, stroke)), max(b -. d, stroke))
   }
-};
+}; */
 
-let collide = (x, y, dx, dy, walls) => {
+let collide = (pos, vel, walls) => {
   List.fold_left(
-    ((dx, dy), wall) => switch wall {
+    (vel, wall) => switch wall {
     | Mazere.Border.Arc(_) => assert(false)
-    | Line((p1, p2)) => {
-      let (pos, w, h) = lineRect(p1, p2, 6.);
+    | Line(((x1, y1), (x2, y2))) => {
+      let c = Geom.Circle.{rad: Shared.playerSize, center: Geom.addVectorToPoint(vel, pos)};
+      let p1 = {Geom.x: x1, y: y1};
+      let p2 = {Geom.x: x2, y: y2};
+      if (Geom.Circle.testLine(c, p1, p2)) {
+        let add = Geom.Circle.vectorToLine(c, p1, p2) |> Geom.pectorToVector;
+        let add = Geom.{magnitude: add.magnitude -. Shared.playerSize, theta: add.theta};
+        Geom.addVectors(add, vel);
+      } else {
+        vel
+      }
+      /* let (pos, w, h) = lineRect(p1, p2, 6.);
       let intersect = Reprocessing.Utils.intersectRectCircle(~rectPos=pos, ~rectH=h, ~rectW=w, ~circleRad=Shared.playerSize);
       if (intersect(~circlePos=(x +. dx, y +. dy))) {
         if (intersect(~circlePos=(x, y +. dy))) {
@@ -77,10 +88,10 @@ let collide = (x, y, dx, dy, walls) => {
         }
       } else {
         (dx, dy)
-      }
+      } */
     }
     },
-    (dx, dy),
+    vel,
     walls
   )
 };
@@ -89,7 +100,7 @@ let dist = ((x, y), (px, py)) => sqrt((px -. x) *. (px -. x) +. (py -. y) *. (py
 
 let normalizePath = (p1, p2) => p1 > p2 ? (p1, p2) : (p2, p1);
 
-let movePlayer = ({player, walls}, env) => {
+let movePlayer = ({player: {pos, vel}, walls}, env) => {
 
   let (ax, ay, any) = List.fold_left(
     ((dx, dy, any), (k, (ax, ay))) => {
@@ -105,12 +116,15 @@ let movePlayer = ({player, walls}, env) => {
 
   let slow = 0.8;
   let med = 0.9;
-  let dx = ax == 0. ? player.dx *. slow : max(min(maxSpeed, player.dx +. ax), -. maxSpeed) *. med;
-  let dy = ay == 0. ? player.dy *. slow : max(min(maxSpeed, player.dy +. ay), -. maxSpeed) *. med;
-  let (dx, dy) = collide(player.x, player.y, dx, dy, walls);
-  let x = player.x +. dx;
-  let y = player.y +. dy;
-  {x, y, dx, dy}
+  let acc = Geom.pectorToVector({Geom.dx: ax, dy: ay});
+  let vel = acc.Geom.magnitude < 0.001 ? Geom.scaleVector(vel, slow) : Geom.addVectors(vel, acc);
+  let vel = Geom.clampVector(vel, maxSpeed);
+  /* let dx = ax == 0. ? player.dx *. slow : max(min(maxSpeed, player.dx +. ax), -. maxSpeed) *. med;
+  let dy = ay == 0. ? player.dy *. slow : max(min(maxSpeed, player.dy +. ay), -. maxSpeed) *. med; */
+  let vel = collide(pos, vel, walls);
+  /* let x = player.x +. dx;
+  let y = player.y +. dy; */
+  {pos: Geom.addVectorToPoint(vel, pos), vel}
 };
 
 let step = ({player, walls, target} as state, env) => {
@@ -121,7 +135,7 @@ let step = ({player, walls, target} as state, env) => {
       ...state,
       throwTimer: Timer.restart(state.throwTimer),
       throwing: Some((Timer.createEmpty(height *. 2.), height)),
-      player: {...player, dx: 0., dy: 0.}
+      player: {...player, vel: Geom.v0}
     }
   } else {
     state
@@ -142,7 +156,7 @@ let step = ({player, walls, target} as state, env) => {
     }
   };
 
-  let pos = state.tileCenter((player.x, player.y));
+  let pos = state.tileCenter((player.pos.Geom.x, player.pos.Geom.y));
   /* Printf.printf("%f, %f - %f %f\n", fst(pos), snd(pos), x, y); */
   /* Format.print_flush(); */
   let state = if (pos != state.currentPos) {
@@ -155,7 +169,7 @@ let step = ({player, walls, target} as state, env) => {
     state
   };
 
-  if (dist(target, (player.x, player.y)) < Shared.playerSize *. 2.) {
+  if (dist(target, (player.pos.Geom.x, player.pos.Geom.y)) < Shared.playerSize *. 2.) {
     AnimateIn(Some(state), newGame(state), Timer.createEmpty(Shared.animateTime));
   } else {
     Playing({...state, player})

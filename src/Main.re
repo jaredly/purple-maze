@@ -36,10 +36,8 @@ let setup = (assetDir, env) => {
     status: AnimateIn(None, {
       tileCenter,
       player: {
-        x: px,
-        y: py,
-        dx: 0.,
-        dy: 0.,
+        pos: {Geom.x: px, y: py},
+        vel: Geom.v0,
       },
       target,
       walls,

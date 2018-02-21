@@ -21,12 +21,12 @@ let drawPower = (throwTimer, env) => {
   Draw.rectf(~pos=(10., 110. -. height), ~width=20., ~height=height, env);
 };
 
-let drawPlayerShadow = ({player}, offset, env) => {
+let drawPlayerShadow = ({player: {pos: {Geom.x, y}}}, offset, env) => {
   Draw.noStroke(env);
   Draw.fill(shadow, env);
   let off = offset *. Shared.playerSize *. 5.;
   let size = Shared.playerSize;
-  Draw.ellipsef(~center=(player.x +. off *. -0.3, player.y +. off), ~radx=size, ~rady=size, env);
+  Draw.ellipsef(~center=(x +. off *. -0.3, y +. off), ~radx=size, ~rady=size, env);
 };
 
 let jumpPercent = ((timer, height)) => {
@@ -45,7 +45,7 @@ let drawJump = ({throwing, player} as state, env) => {
 
     Draw.fill(background, env);
     let size = full;
-    Draw.ellipsef(~center=(player.x, player.y), ~radx=size, ~rady=size, env);
+    Draw.ellipsef(~center=Geom.tuple(player.pos), ~radx=size, ~rady=size, env);
   }
   };
 };
@@ -53,7 +53,7 @@ let drawJump = ({throwing, player} as state, env) => {
 let drawLights = ({player}, light, env) => {
   Draw.fill(background, env);
   /* let light = 80.; */
-  Draw.ellipsef(~center=(player.x, player.y), ~radx=light, ~rady=light, env);
+  Draw.ellipsef(~center=Geom.tuple(player.pos), ~radx=light, ~rady=light, env);
 };
 
 let drawWalls = (state, env) => {
@@ -71,7 +71,7 @@ let drawPath = (state, env) => {
 let drawPlayer = ({player}, scale, env) => {
   Draw.noStroke(env);
   Draw.fill(darker, env);
-  Draw.ellipsef(~center=(player.x, player.y), ~radx=Shared.playerSize *. scale, ~rady=Shared.playerSize *. scale, env);
+  Draw.ellipsef(~center=Geom.tuple(player.pos), ~radx=Shared.playerSize *. scale, ~rady=Shared.playerSize *. scale, env);
 };
 
 let drawGoal = ({target}, env) => {

@@ -6,7 +6,7 @@ type platform = {x: float, y: float, w: float};
 
 type input = Left | Right | NoInput;
 
-type player = {x: float, y: float, dx: float, dy: float};
+type player = {pos: Geom.point, vel: Geom.vector};
 
 let playerSize = 20.;
 
