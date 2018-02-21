@@ -8,7 +8,7 @@ let makeMaze = () => {
   let module Man = Mazere.Manager.F(Board, Alg);
 
   Man.randInit();
-  let (width, height) = (500., 500.);
+  let (width, height) = (800., 800.);
   let min_margin = 10.;
   let size_hint = 10;
 
@@ -53,7 +53,7 @@ let collide = (x, y, dx, dy, walls) => {
     | Mazere.Border.Arc(_) => assert(false)
     | Line((p1, p2)) => {
       let (pos, w, h) = lineRect(p1, p2, 6.);
-      let intersect = Reprocessing.Utils.intersectRectCircle(~rectPos=pos, ~rectH=h, ~rectW=w, ~circleRad=10.);
+      let intersect = Reprocessing.Utils.intersectRectCircle(~rectPos=pos, ~rectH=h, ~rectW=w, ~circleRad=Shared.playerSize);
       if (intersect(~circlePos=(x +. dx, y +. dy))) {
         if (intersect(~circlePos=(x, y +. dy))) {
           (dx, 0.)
@@ -118,7 +118,7 @@ let step = ({player, walls, target} as state, env) => {
     }
   };
 
-  if (dist(target, (x, y)) < 20.) {
+  if (dist(target, (x, y)) < Shared.playerSize *. 2.) {
     newGame(state)
   } else {
     {...state, player: {x, y, dx, dy}}

@@ -12,7 +12,7 @@ let draw = ({player, walls, target, throwTimer, throwing}, {textFont, width, hei
   /** your personal light */
   /* Draw.fill(Constants.white, env); */
   Draw.fill(Utils.color(~r=255, ~g=220, ~b=255, ~a=255), env);
-  let light = 40.;
+  let light = 80.;
   Draw.ellipsef(~center=(player.x, player.y), ~radx=light, ~rady=light, env);
 
   /** Thrown light */
@@ -21,7 +21,7 @@ let draw = ({player, walls, target, throwTimer, throwing}, {textFont, width, hei
   | Some((timer, height)) => {
     let percent = Timer.percent(timer);
     let p = sqrt(sin(percent *. 3.14159));
-    let top = 70. +. 100. *. height;
+    let top = 140. +. 200. *. height;
     /* let percent = 1.; */
     let full = top *. p;
 
@@ -39,12 +39,12 @@ let draw = ({player, walls, target, throwTimer, throwing}, {textFont, width, hei
   /* Now you */
   Draw.noStroke(env);
   Draw.fill(darker, env);
-  Draw.ellipsef(~center=(player.x, player.y), ~radx=10., ~rady=10., env);
+  Draw.ellipsef(~center=(player.x, player.y), ~radx=Shared.playerSize, ~rady=Shared.playerSize, env);
 
   /* The target */
   Draw.fill(Constants.black, env);
   Draw.noStroke(env);
-  Draw.ellipsef(~center=target, ~radx=10., ~rady=10., env);
+  Draw.ellipsef(~center=target, ~radx=Shared.playerSize, ~rady=Shared.playerSize, env);
 
 
   Draw.noFill(env);

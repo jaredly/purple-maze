@@ -7,7 +7,7 @@ let setup = (assetDir, env) => {
     Reprocessing.Env.resizeable(false, env);
   };
 
-  Reprocessing.Env.size(~width=500, ~height=500, env);
+  Reprocessing.Env.size(~width=800, ~height=800, env);
   /* if (!Shared.isPhone) {
     let size = min(Reprocessing.Env.maxHeight(env), 800);
     Reprocessing.Env.size(~width=size / 2, ~height=size, env);

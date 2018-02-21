@@ -8,6 +8,8 @@ type input = Left | Right | NoInput;
 
 type player = {x: float, y: float, dx: float, dy: float};
 
+let playerSize = 20.;
+
 type state = {
   walls: list(Mazere.Border.t),
   player,
