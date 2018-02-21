@@ -53,11 +53,12 @@ let draw = ({player, walls, target, throwTimer, throwing}, {textFont, width, hei
   Draw.strokeWeight(3, env);
   Draw.noFill(env);
   Draw.stroke(Constants.black, env);
-  Draw.rectf(~pos=(0., 0.), ~width=20., ~height=100., env);
+  Draw.rectf(~pos=(10., 10.), ~width=20., ~height=100., env);
 
   Draw.noStroke(env);
   Draw.fill(Constants.black, env);
-  Draw.rectf(~pos=(0., 0.), ~width=20., ~height=100. *. Timer.percent(throwTimer), env);
+  let height = 100. *. Timer.percent(throwTimer);
+  Draw.rectf(~pos=(10., 110. -. height), ~width=20., ~height=height, env);
   ()
 };
 
