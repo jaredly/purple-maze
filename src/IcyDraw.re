@@ -53,7 +53,7 @@ let drawJump = ({throwing, player} as state, env) => {
 
 let drawLights = ({player}, light, env) => {
   Draw.fill(background, env);
-  let light = 800.;
+  /* let light = 800.; */
   Draw.ellipsef(~center=Geom.tuple(player.pos), ~radx=light, ~rady=light, env);
 };
 
@@ -67,6 +67,13 @@ let drawPath = (state, env) => {
   Draw.strokeWeight(int_of_float(state.player.size /. 2.), env);
   Draw.stroke(pathColor, env);
   state.path |> Shared.LineSet.iter(((p1, p2)) => Draw.linef(~p1, ~p2, env));
+  switch (Shared.Queue.peek(state.pendingPath)) {
+  | None => ()
+  | Some((p1, p2)) => {
+    let pend = Geom.lerpTuples(p1, p2, Timer.percent(state.pathTimer));
+    Draw.linef(~p1, ~p2=pend, env);
+  }
+  }
 };
 
 let drawPlayer = (player, scale, env) => {
@@ -99,7 +106,6 @@ let draw = ({player, walls, target, throwTimer, throwing, path} as state, {textF
   }
   }, env);
   drawPower(throwTimer, env);
-
 
   let dEBUG = false;
   if (dEBUG) {

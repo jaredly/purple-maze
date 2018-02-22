@@ -19,7 +19,7 @@ let makeMaze = (curPos) => {
   Man.randInit();
   let (width, height) = (700., 700.);
   let min_margin = 10.;
-  let size_hint = 5;
+  let size_hint = 15;
 
   let with_margins = (width -. min_margin *. 2.0, height -. min_margin *. 2.0);
   let state = Man.init(with_margins, size_hint);
@@ -57,6 +57,8 @@ let newGame = state => {
   {...state,
     walls,
     coords,
+    pathTimer: Timer.createEmpty(Shared.animateTime),
+    pendingPath: Shared.Queue.empty,
     player: {pos: {Geom.x: px, y: py}, vel: Geom.v0, size: 10.}, target,
     path: Shared.LineSet.empty,
     currentPos: (px, py),
@@ -132,7 +134,7 @@ let collide = (playerSize, pos, vel, walls) => {
 
 let dist = ((x, y), (px, py)) => sqrt((px -. x) *. (px -. x) +. (py -. y) *. (py -. y));
 
-let normalizePath = (p1, p2) => p1 > p2 ? (p1, p2) : (p2, p1);
+let normalizePath = ((p1, p2)) => p1 > p2 ? (p1, p2) : (p2, p1);
 
 let movePlayer = ({player: {pos, vel, size}, walls}, env) => {
 
@@ -194,15 +196,35 @@ let step = ({player, walls, target} as state, env) => {
   let pos = state.tileCenter((player.pos.Geom.x, player.pos.Geom.y));
   /* Printf.printf("%f, %f - %f %f\n", fst(pos), snd(pos), x, y); */
   /* Format.print_flush(); */
-  let state = if (pos != state.currentPos) {
+  let state = if (pos != state.currentPos && !Shared.LineSet.mem(normalizePath((state.currentPos, pos)), state.path)) {
     {
       ...state,
       currentPos: pos,
-      path: Shared.LineSet.add(normalizePath(state.currentPos, pos), state.path)
+      pathTimer: if (Shared.Queue.isEmpty(state.pendingPath)) {
+        Timer.createEmpty(Shared.pathTime)
+      } else {
+        state.pathTimer
+      },
+      pendingPath: Shared.Queue.add((state.currentPos, pos), state.pendingPath)
     }
   } else {
-    state
+    {...state, currentPos: pos}
   };
+
+  let (pathTimer, isFull) = Timer.incLoop(state.pathTimer, env);
+  let (path, pendingPath) = isFull
+    ? {
+      switch (Shared.Queue.take(state.pendingPath)) {
+      | None => (state.path, state.pendingPath)
+      | Some((el, pendingPath)) => (Shared.LineSet.add(normalizePath(el), state.path), pendingPath)
+      }
+    }
+    : (state.path, state.pendingPath);
+  let pendingPath = switch (Shared.Queue.take(pendingPath)) {
+  | Some((item, rest)) when Shared.LineSet.mem(normalizePath(item), state.path) => rest
+  | _ => pendingPath
+  };
+  let state = { ...state, pathTimer, path, pendingPath };
 
   if (dist(target, (player.pos.Geom.x, player.pos.Geom.y)) < player.size) {
     AnimateIn(Some(state), newGame(state), Timer.createEmpty(Shared.animateTime));

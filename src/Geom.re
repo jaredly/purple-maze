@@ -33,6 +33,7 @@ let v0 = {magnitude: 0., theta: 0.};
 type pector = {dx: float, dy: float};
 
 let tuple = ({x, y}) => (x, y);
+let fromTuple = ((x, y)) => {x, y};
 let dist = (p1, p2) => {
   let dx = p2.x -. p1.x;
   let dy = p2.y -. p1.y;
@@ -64,6 +65,12 @@ let lerpPos = (p1, p2, amount) => {
   let dx = p2.x -. p1.x;
   let dy = p2.y -. p1.y;
   {x: p1.x +. dx *. amount, y: p1.y +. dy *. amount}
+};
+
+let lerpTuples = ((x1, y1), (x2, y2), amount) => {
+  let dx = x2 -. x1;
+  let dy = y2 -. y1;
+  (x1 +. dx *. amount, y1 +. dy *. amount)
 };
 
 module Circle = {

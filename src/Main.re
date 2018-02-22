@@ -36,6 +36,8 @@ let setup = (assetDir, env) => {
     status: AnimateIn(None, {
       tileCenter,
       coords,
+      pathTimer: Timer.createEmpty(Shared.animateTime),
+      pendingPath: Shared.Queue.empty,
       player: {
         pos: {Geom.x: px, y: py},
         vel: Geom.v0,
