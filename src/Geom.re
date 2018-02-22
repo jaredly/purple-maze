@@ -127,6 +127,94 @@ module Circle = {
   };
 };
 
+let pi = 3.14159;
+let tau = pi *. 2.;
+
+let clockwiseAngleDiff = (first, second) => {
+  let first = mod_float(first, tau);
+  let second = mod_float(first, tau);
+  let diff = second -. first;
+  if (diff < 0.) {
+    diff +. tau
+  } else {
+    diff
+  }
+  /* if (first > second) {
+    second -. mod_float(first, tau)
+  } else {
+    mod_float((second -. first), tau)
+  } */
+};
+
+[@test [
+  /* (0., 1., 0.5),
+  (-0.1, 0.1, 0.0),
+  (pi -. 0.1, -. pi +. 0.1, pi),
+  (pi -. 0.1, -. pi +. 0.1, -. pi), */
+  (tau -. 0.1, tau, -0.05),
+  (pi, pi +. 0.1, -. pi +. 0.05)
+]]
+let isThetaBetween = (low, high, test) => {
+  let a = clockwiseAngleDiff(low, test);
+  a >= 0. && a <= clockwiseAngleDiff(low, high)
+};
+
+let rec normalize = x => {
+  if (x < -. pi) normalize(x +. tau)
+  else if (x > pi) normalize(x -. tau)
+  else x
+};
+
+let isThetaBetween = (low, high, test) => {
+  let low = low -. test |> normalize;
+  let high = high -. test |> normalize;
+  if (low *. high >= 0.) {
+    false
+  } else {
+    abs_float(high -. low) < pi
+  }
+};
+
+module Arc = {
+  type t = {cx: float, cy: float, r: float, t1: float, t2: float};
+  let points = ({cx, cy, r, t1, t2}) => {
+    (
+      {x: cos(t1) *. r +. cx, y: sin(t1) *. r +. cy},
+      {x: cos(t2) *. r +. cx, y: sin(t2) *. r +. cy},
+    )
+  };
+
+  let testCircle = ({cx, cy, r, t1, t2} as arc, c) => {
+    let t2 = (t1 > t2) ? t2 +. tau : t2;
+    let (p1, p2) = points(arc);
+    let v = pectorToVector({dx: c.Circle.center.x -. cx, dy: c.Circle.center.y -. cy});
+    if (isThetaBetween(t1, t2, v.theta)) {
+    /* if (t1 <= v.theta && v.theta <= t2) { */
+      v.magnitude < r +. c.Circle.rad &&
+      v.magnitude > r -. c.Circle.rad
+    } else {
+      Circle.testPoint(c, p1) || Circle.testPoint(c, p2)
+    }
+  };
+
+  let vectorToCircle = ({cx, cy, r, t1, t2} as arc, c) => {
+    /* let t1 = (t1 > t2) ? t1 -. tau : t1; */
+    let t2 = (t1 > t2) ? t2 +. tau : t2;
+    let (p1, p2) = points(arc);
+    let v = pectorToVector({dx: c.Circle.center.x -. cx, dy: c.Circle.center.y -. cy});
+    if (isThetaBetween(t1, t2, v.theta)) {
+    /* if (t1 <= v.theta && v.theta <= t2) { */
+      vectorToPector({magnitude: v.magnitude -. r, theta: v.theta})
+    } else {
+      let p1diff = pdiff(c.Circle.center, p1);
+      let p2diff = pdiff(c.Circle.center, p2);
+      let d1 = pdist(p1diff);
+      let d2 = pdist(p2diff);
+      invertPector(d1 < d2 ? p1diff : p2diff)
+    }
+  };
+};
+
 module Aabb = {
   type t = {x0: float, y0: float, x1: float, y1: float};
   let testPoint = ({x0, y0, x1, y1}, {x, y}) => {

@@ -1,9 +1,20 @@
 
-  let draw_wall = (ctx, (xm, ym), wall) =>
+let intPos = ({Geom.x, y}) => (int_of_float(x), int_of_float(y));
+
+  let draw_wall = (ctx, textFont, (xm, ym), wall) =>
     switch wall {
     | Mazere.Border.Line(((x, y), (a, b))) => Reprocessing.Draw.linef(~p1=(x +. xm, y +. ym), ~p2=(a +. xm, b +. ym), ctx)
     | Mazere.Border.Arc((x, y, r, t1, t2)) =>
-      assert(false)
+      Reprocessing.Draw.noFill(ctx);
+      Reprocessing.Draw.arcf(~center=(x +. xm, y +. ym), ~radx=r, ~rady=r, ~start=t1, ~stop=t2, ~isOpen=true, ~isPie=false, ctx);
+      /* switch textFont {
+      | None => ()
+      | Some(textFont) =>
+        let (p1, p2) = Geom.Arc.points({Geom.Arc.cx: x, cy: y, r, t1, t2});
+        Reprocessing.Draw.text(~font=textFont, ~body=string_of_float(t1), ~pos=intPos(p1), ctx);
+        Reprocessing.Draw.text(~font=textFont, ~body=string_of_float(t2), ~pos=intPos(p2), ctx);
+      }; */
+      /* assert(false) */
       /* Reprocessing.Draw.arcf
       Ctx.beginPath(ctx);
       Ctx.arc(ctx, x +. xm, y +. ym, r, t1, t2);

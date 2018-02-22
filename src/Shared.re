@@ -6,9 +6,9 @@ type platform = {x: float, y: float, w: float};
 
 type input = Left | Right | NoInput;
 
-type player = {pos: Geom.point, vel: Geom.vector};
+type player = {pos: Geom.point, vel: Geom.vector, size: float};
 
-let playerSize = 20.;
+/* let playerSize = 20.; */
 
 /* type maze('state, 'coord) = {
   state: 'state,

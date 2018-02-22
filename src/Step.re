@@ -2,8 +2,14 @@ open Shared;
 open Reprocessing;
 
 let makeMaze = (curPos) => {
-  let module Board = Mazere.NewRect;
-  /* let module Board = Mazere.TriangleBoard; */
+  /* Not so much */
+  /* let module Board = Mazere.HexBox; */
+  /* let module Board = Mazere.NewHexTriangle; */
+  /* Good */
+  /* let module Board = Mazere.NewRect; */
+  let module Board = Mazere.TriangleBoard;
+  /* let module Board = Mazere.SquareTriangle; */
+  /* let module Board = Mazere.Circle; */
   let module Alg = Mazere.NewDepth.F(Mazere.NewDepth.RandomConfig({}));
 
   let module Man = Mazere.Manager.F(Board, Alg);
@@ -11,13 +17,22 @@ let makeMaze = (curPos) => {
   Man.randInit();
   let (width, height) = (800., 800.);
   let min_margin = 10.;
-  let size_hint = 10;
+  let size_hint = 15;
 
   let with_margins = (width -. min_margin *. 2.0, height -. min_margin *. 2.0);
   let state = Man.init(with_margins, size_hint);
   let state = Man.loop_to_end(state);
 
   let walls = Man.all_walls(state);
+  /* let items = ref([]);
+  for (i in 0 to 10) {
+    let fi = float_of_int(i);
+    let scale = 3.14159 *. 2. /. 20.;
+    let ti = fi *. 2. +. 1.5 +. 10.;
+    let wall = Mazere.Border.Arc((400., 400., 300., ti *. scale, (ti +. 1.) *. scale));
+    items := [wall, ...items^];
+  };
+  let walls = items^; */
   let tileCenter = (pos) => Board.tile_center(state.shape, state.scale, Board.from_point(state.shape, state.scale, pos));
   let player = switch curPos {
   | Some(pos) => tileCenter(Geom.tuple(pos))
@@ -37,7 +52,7 @@ let newGame = state => {
   let (walls, (px, py), target, tileCenter) = makeMaze(Some(state.player.pos));
   {...state,
     walls,
-    player: {pos: {Geom.x: px, y: py}, vel: Geom.v0}, target,
+    player: {pos: {Geom.x: px, y: py}, vel: Geom.v0, size: 10.}, target,
     path: Shared.LineSet.empty,
     currentPos: (px, py),
     tileCenter,
@@ -65,17 +80,27 @@ let maxSpeed = 7.;
   }
 }; */
 
-let collide = (pos, vel, walls) => {
+let collide = (playerSize, pos, vel, walls) => {
   List.fold_left(
     (vel, wall) => switch wall {
-    | Mazere.Border.Arc(_) => assert(false)
+    | Mazere.Border.Arc((cx, cy, r, t1, t2)) => {
+      let c = Geom.Circle.{rad: playerSize, center: Geom.addVectorToPoint(vel, pos)};
+      let arc = Geom.Arc.{cx, cy, r, t1, t2};
+      if (Geom.Arc.testCircle(arc, c)) {
+        let add = Geom.Arc.vectorToCircle(arc, c) |> Geom.pectorToVector |> Geom.invertVector;
+        let add = Geom.{magnitude: add.magnitude -. playerSize, theta: add.theta};
+        Geom.addVectors(add, vel);
+      } else {
+        vel
+      }
+    }
     | Line(((x1, y1), (x2, y2))) => {
-      let c = Geom.Circle.{rad: Shared.playerSize, center: Geom.addVectorToPoint(vel, pos)};
+      let c = Geom.Circle.{rad: playerSize, center: Geom.addVectorToPoint(vel, pos)};
       let p1 = {Geom.x: x1, y: y1};
       let p2 = {Geom.x: x2, y: y2};
       if (Geom.Circle.testLine(c, p1, p2)) {
         let add = Geom.Circle.vectorToLine(c, p1, p2) |> Geom.pectorToVector;
-        let add = Geom.{magnitude: add.magnitude -. Shared.playerSize, theta: add.theta};
+        let add = Geom.{magnitude: add.magnitude -. playerSize, theta: add.theta};
         Geom.addVectors(add, vel);
       } else {
         vel
@@ -104,7 +129,7 @@ let dist = ((x, y), (px, py)) => sqrt((px -. x) *. (px -. x) +. (py -. y) *. (py
 
 let normalizePath = (p1, p2) => p1 > p2 ? (p1, p2) : (p2, p1);
 
-let movePlayer = ({player: {pos, vel}, walls}, env) => {
+let movePlayer = ({player: {pos, vel, size}, walls}, env) => {
 
   let (ax, ay, any) = List.fold_left(
     ((dx, dy, any), (k, (ax, ay))) => {
@@ -126,10 +151,10 @@ let movePlayer = ({player: {pos, vel}, walls}, env) => {
   let vel = Geom.clampVector(vel, maxSpeed);
   /* let dx = ax == 0. ? player.dx *. slow : max(min(maxSpeed, player.dx +. ax), -. maxSpeed) *. med;
   let dy = ay == 0. ? player.dy *. slow : max(min(maxSpeed, player.dy +. ay), -. maxSpeed) *. med; */
-  let vel = collide(pos, vel, walls);
+  let vel = collide(size, pos, vel, walls);
   /* let x = player.x +. dx;
   let y = player.y +. dy; */
-  {pos: Geom.addVectorToPoint(vel, pos), vel}
+  {pos: Geom.addVectorToPoint(vel, pos), vel, size}
 };
 
 let step = ({player, walls, target} as state, env) => {
@@ -174,7 +199,7 @@ let step = ({player, walls, target} as state, env) => {
     state
   };
 
-  if (dist(target, (player.pos.Geom.x, player.pos.Geom.y)) < Shared.playerSize *. 2.) {
+  if (dist(target, (player.pos.Geom.x, player.pos.Geom.y)) < player.size) {
     AnimateIn(Some(state), newGame(state), Timer.createEmpty(Shared.animateTime));
   } else {
     Playing({...state, player})

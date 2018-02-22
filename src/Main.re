@@ -38,6 +38,7 @@ let setup = (assetDir, env) => {
       player: {
         pos: {Geom.x: px, y: py},
         vel: Geom.v0,
+        size: 10.,
       },
       target,
       walls,
@@ -69,3 +70,7 @@ let run = (assetDir, _) => Reprocessing.run(
   ~draw,
   ()
 );
+
+let noop = () => {
+  print_endline("noop");
+};

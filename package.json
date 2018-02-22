@@ -14,7 +14,8 @@
     "ios:device": "rsb ios:device",
     "js": "rsb js",
     "serve": "rsb js:serve",
-    "clean": "rm -rf _build && bsb -clean-world"
+    "clean": "rm -rf _build && bsb -clean-world",
+    "test": "bsb -make-world -backend bytecode && ./lib/bs/bytecode/test.byte"
   },
   "keywords": [
     "BuckleScript"

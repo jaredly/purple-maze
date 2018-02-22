@@ -17,6 +17,9 @@
     "backend": "bytecode",
     "main-module": "Dev"
   },{
+    "backend": "bytecode",
+    "main-module": "Test"
+  },{
     "backend": "js",
     "main-module": "Web"
   },{
