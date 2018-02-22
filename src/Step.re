@@ -11,7 +11,16 @@ let makeMaze = (curPos) => {
   /* let module Board = Mazere.SquareTriangle; */
   /* let module Board = Mazere.Circle; */
   /* let module Board = Mazere.FourSquare; */
-  let module Board = Mazere.TriangleBox;
+  let modules: array((module Mazere.SimpleBoard.T)) = [|
+    (module Mazere.NewRect),
+    (module Mazere.TriangleBoard),
+    (module Mazere.SquareTriangle),
+    (module Mazere.Circle),
+    (module Mazere.FourSquare),
+    (module Mazere.TriangleBox),
+  |];
+  let module Board = (val (modules[Random.int(Array.length(modules))]));
+  /* let module Board = Mazere.Circle; */
   let module Alg = Mazere.NewDepth.F(Mazere.NewDepth.RandomConfig({}));
 
   let module Man = Mazere.Manager.F(Board, Alg);
@@ -28,27 +37,45 @@ let makeMaze = (curPos) => {
   let walls = Man.all_walls(state);
   /* let walls = []; */
   let tileCenter = (pos) => Board.tile_center(state.shape, state.scale, Board.from_point(state.shape, state.scale, pos));
-  let player = switch curPos {
-  | Some(pos) => tileCenter(Geom.tuple(pos))
+  let playerCoord = switch curPos {
+  | Some(pos) => {
+    let coord = Board.from_point(state.shape, state.scale, Geom.tuple(pos));
+    if (Man.isCoordInBoard(state, coord)) {
+      coord
+      /* Board.tile_center(state.shape, state.scale, coord) */
+    } else {
+      Man.randomCoord(state)
+    }
+  }
   | None => Man.randomCoord(state);
   };
-  /* let goal = Man.randomCoord(state); */
 
-  let distances = Man.distanceFromCoord(state, Board.from_point(state.shape, state.scale, player))
+  let distances = Man.distanceFromCoord(state, playerCoord)
   |> Array.map(((coord, i)) => (Board.tile_center(state.shape, state.scale, coord), i));
 
+  let player = Man.tileCenter(state, playerCoord);
   let max = Array.fold_left((m, (_, dist)) => max(m, dist), 0, distances);
   let target = max * 3 / 4;
   let potentialGoals = Array.fold_left((matching, (pos, dist)) => dist == target ? [pos, ...matching] : matching, [], distances);
   let count = List.length(potentialGoals);
   let goal = List.nth(potentialGoals, Random.int(count));
 
-  /* let maze = Maze({
-    state,
-    tileCenter: (state, pos) => Board.tile_center(state.shape, state.scale, Board.from_point(state.shape, state.scale, pos))
+  let coords = Man.allCoords(state);
+
+  /*
+    To veirfy that the from_point calculation is correct.
+    coords |> Array.iter(((coord, pos)) => {
+    let c2 = Board.from_point(state.shape, state.scale, pos);
+    if (!Man.isCoordInBoard(state, coord)) {
+      failwith("Coord I got from allCorrds not in board");
+    } else if (coord != c2) {
+      print_endline("Roundtrip to from_point gives a different coord: " ++ Board.Coord.show(coord) ++ " became " ++ Board.Coord.show(c2));
+    } else {
+      ()
+    }
   }); */
 
-  let coords = Man.allCoords(state);
+  let coords = coords |> Array.map(((coord, pos)) => (Board.Coord.show(coord), pos));
   (walls, player, goal, tileCenter, coords, distances);
 };
 

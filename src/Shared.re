@@ -61,7 +61,7 @@ let pathTime = 0.1;
 
 type state = {
   walls: list(Mazere.Border.t),
-  coords: array((Mazere.Coord2d.t, (float, float))),
+  coords: array((string, (float, float))),
   distances: array(((float, float), int)),
   path: LineSet.t,
   pathTimer: Timer.t,
