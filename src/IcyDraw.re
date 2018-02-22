@@ -107,17 +107,18 @@ let draw = ({player, walls, target, throwTimer, throwing, path} as state, {textF
   }, env);
   drawPower(throwTimer, env);
 
-  let dEBUG = false;
-  if (dEBUG) {
-    Draw.tint(Constants.black, env);
-    state.coords |> Array.iter((((cx, cy), (x, y))) => {
-      Draw.text(~font=textFont, ~body=Printf.sprintf("%d,%d", cx, cy), ~pos=(int_of_float(x), int_of_float(y)), env)
-    });
+  /* Draw.tint(Constants.black, env);
+  state.coords |> Array.iter((((cx, cy), (x, y))) => {
+    Draw.text(~font=textFont, ~body=Printf.sprintf("%d,%d", cx, cy), ~pos=(int_of_float(x), int_of_float(y)), env)
+  }); */
 
-    /* For debugging the from_point function */
-    let trace = state.tileCenter(player.pos |> Geom.tuple);
-    Draw.ellipsef(~center=trace, ~radx=5., ~rady=5., env);
-  };
+  /* For debugging the from_point function */
+  /* let trace = state.tileCenter(player.pos |> Geom.tuple);
+  Draw.ellipsef(~center=trace, ~radx=5., ~rady=5., env); */
+
+  /* state.distances |> Array.iter((((x, y), i)) => {
+    Draw.text(~font=textFont, ~body=Printf.sprintf("%d", i), ~pos=(int_of_float(x), int_of_float(y)), env)
+  }); */
 
   ()
 };

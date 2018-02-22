@@ -17,7 +17,7 @@ let makeMaze = (curPos) => {
   let module Man = Mazere.Manager.F(Board, Alg);
 
   Man.randInit();
-  let (width, height) = (700., 700.);
+  let (width, height) = (800., 800.);
   let min_margin = 10.;
   let size_hint = 15;
 
@@ -26,22 +26,22 @@ let makeMaze = (curPos) => {
   let state = Man.loop_to_end(state);
 
   let walls = Man.all_walls(state);
-  /* let items = ref([]);
-  for (i in 0 to 10) {
-    let fi = float_of_int(i);
-    let scale = 3.14159 *. 2. /. 20.;
-    let ti = fi *. 2. +. 1.5 +. 10.;
-    let wall = Mazere.Border.Arc((400., 400., 300., ti *. scale, (ti +. 1.) *. scale));
-    items := [wall, ...items^];
-  };
-  let walls = items^; */
   /* let walls = []; */
   let tileCenter = (pos) => Board.tile_center(state.shape, state.scale, Board.from_point(state.shape, state.scale, pos));
   let player = switch curPos {
   | Some(pos) => tileCenter(Geom.tuple(pos))
   | None => Man.randomCoord(state);
   };
-  let goal = Man.randomCoord(state);
+  /* let goal = Man.randomCoord(state); */
+
+  let distances = Man.distanceFromCoord(state, Board.from_point(state.shape, state.scale, player))
+  |> Array.map(((coord, i)) => (Board.tile_center(state.shape, state.scale, coord), i));
+
+  let max = Array.fold_left((m, (_, dist)) => max(m, dist), 0, distances);
+  let target = max * 3 / 4;
+  let potentialGoals = Array.fold_left((matching, (pos, dist)) => dist == target ? [pos, ...matching] : matching, [], distances);
+  let count = List.length(potentialGoals);
+  let goal = List.nth(potentialGoals, Random.int(count));
 
   /* let maze = Maze({
     state,
@@ -49,14 +49,15 @@ let makeMaze = (curPos) => {
   }); */
 
   let coords = Man.allCoords(state);
-  (walls, player, goal, tileCenter, coords);
+  (walls, player, goal, tileCenter, coords, distances);
 };
 
 let newGame = state => {
-  let (walls, (px, py), target, tileCenter, coords) = makeMaze(Some(state.player.pos));
+  let (walls, (px, py), target, tileCenter, coords, distances) = makeMaze(Some(state.player.pos));
   {...state,
     walls,
     coords,
+    distances,
     pathTimer: Timer.createEmpty(Shared.animateTime),
     pendingPath: Shared.Queue.empty,
     player: {pos: {Geom.x: px, y: py}, vel: Geom.v0, size: 10.}, target,

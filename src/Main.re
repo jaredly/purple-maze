@@ -30,12 +30,13 @@ let setup = (assetDir, env) => {
   let width = Reprocessing.Env.width(env) |> float_of_int;
 
   /* Js.log2("Random", Random.int(10)); */
-  let (walls, (px, py), target, tileCenter, coords) = Step.makeMaze(None);
+  let (walls, (px, py), target, tileCenter, coords, distances) = Step.makeMaze(None);
 
   {
     status: AnimateIn(None, {
       tileCenter,
       coords,
+      distances,
       pathTimer: Timer.createEmpty(Shared.animateTime),
       pendingPath: Shared.Queue.empty,
       player: {
