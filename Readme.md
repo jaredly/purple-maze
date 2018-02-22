@@ -1,6 +1,9 @@
-# Icy Tower
+# Purple Maze
 
-Inspired by that game by FreeLunchDesign in the early 2000s.
+It's a maze game, written in Reason.
+Planning to target mobile, web, and native desktop.
+
+I'll probably spin out a couple of the parts into standalone libraries (`Geom.re` in particular).
 
 ## License
 
