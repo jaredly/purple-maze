@@ -1,6 +1,6 @@
 # Purple Maze
 
-![screencast](./screencase.gif)
+![screencast](./screencast.gif)
 
 It's a maze game, written in Reason.
 Planning to target mobile, web, and native desktop.
