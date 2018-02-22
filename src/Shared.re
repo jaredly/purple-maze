@@ -26,6 +26,7 @@ let module LineSet = Set.Make({
 
 type state = {
   walls: list(Mazere.Border.t),
+  coords: array((Mazere.Coord2d.t, (float, float))),
   path: LineSet.t,
   currentPos: (float, float),
   tileCenter: ((float, float)) => (float, float),

@@ -7,17 +7,19 @@ let makeMaze = (curPos) => {
   /* let module Board = Mazere.NewHexTriangle; */
   /* Good */
   /* let module Board = Mazere.NewRect; */
-  let module Board = Mazere.TriangleBoard;
+  /* let module Board = Mazere.TriangleBoard; */
   /* let module Board = Mazere.SquareTriangle; */
   /* let module Board = Mazere.Circle; */
+  /* let module Board = Mazere.FourSquare; */
+  let module Board = Mazere.TriangleBox;
   let module Alg = Mazere.NewDepth.F(Mazere.NewDepth.RandomConfig({}));
 
   let module Man = Mazere.Manager.F(Board, Alg);
 
   Man.randInit();
-  let (width, height) = (800., 800.);
+  let (width, height) = (700., 700.);
   let min_margin = 10.;
-  let size_hint = 15;
+  let size_hint = 5;
 
   let with_margins = (width -. min_margin *. 2.0, height -. min_margin *. 2.0);
   let state = Man.init(with_margins, size_hint);
@@ -33,6 +35,7 @@ let makeMaze = (curPos) => {
     items := [wall, ...items^];
   };
   let walls = items^; */
+  /* let walls = []; */
   let tileCenter = (pos) => Board.tile_center(state.shape, state.scale, Board.from_point(state.shape, state.scale, pos));
   let player = switch curPos {
   | Some(pos) => tileCenter(Geom.tuple(pos))
@@ -45,13 +48,15 @@ let makeMaze = (curPos) => {
     tileCenter: (state, pos) => Board.tile_center(state.shape, state.scale, Board.from_point(state.shape, state.scale, pos))
   }); */
 
-  (walls, player, goal, tileCenter);
+  let coords = Man.allCoords(state);
+  (walls, player, goal, tileCenter, coords);
 };
 
 let newGame = state => {
-  let (walls, (px, py), target, tileCenter) = makeMaze(Some(state.player.pos));
+  let (walls, (px, py), target, tileCenter, coords) = makeMaze(Some(state.player.pos));
   {...state,
     walls,
+    coords,
     player: {pos: {Geom.x: px, y: py}, vel: Geom.v0, size: 10.}, target,
     path: Shared.LineSet.empty,
     currentPos: (px, py),

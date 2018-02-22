@@ -53,7 +53,7 @@ let drawJump = ({throwing, player} as state, env) => {
 
 let drawLights = ({player}, light, env) => {
   Draw.fill(background, env);
-  /* let light = 80.; */
+  let light = 800.;
   Draw.ellipsef(~center=Geom.tuple(player.pos), ~radx=light, ~rady=light, env);
 };
 
@@ -99,6 +99,19 @@ let draw = ({player, walls, target, throwTimer, throwing, path} as state, {textF
   }
   }, env);
   drawPower(throwTimer, env);
+
+
+  let dEBUG = false;
+  if (dEBUG) {
+    Draw.tint(Constants.black, env);
+    state.coords |> Array.iter((((cx, cy), (x, y))) => {
+      Draw.text(~font=textFont, ~body=Printf.sprintf("%d,%d", cx, cy), ~pos=(int_of_float(x), int_of_float(y)), env)
+    });
+
+    /* For debugging the from_point function */
+    let trace = state.tileCenter(player.pos |> Geom.tuple);
+    Draw.ellipsef(~center=trace, ~radx=5., ~rady=5., env);
+  };
 
   ()
 };
