@@ -32,7 +32,8 @@ let makeMaze = (~size=10, curPos, env) => {
 
   /* let (width, height) = (800., 800.); */
   let min_margin = 10.;
-  let size_hint = 7;
+  let size_hint = 6;
+  let size_hint = 8;
 
   let with_margins = (width -. min_margin *. 2.0, height -. min_margin *. 2.0);
   let state = Man.init(with_margins, size_hint);
@@ -59,8 +60,8 @@ let makeMaze = (~size=10, curPos, env) => {
 
   let player = Man.tileCenter(state, playerCoord);
   let max = Array.fold_left((m, (_, dist)) => max(m, dist), 0, distances);
-  let target = max * 3 / 4;
-  let potentialGoals = Array.fold_left((matching, (pos, dist)) => dist == target ? [pos, ...matching] : matching, [], distances);
+  let targetDist = max * 3 / 4;
+  let potentialGoals = Array.fold_left((matching, (pos, dist)) => dist == targetDist ? [pos, ...matching] : matching, [], distances);
   let count = List.length(potentialGoals);
   let goal = List.nth(potentialGoals, Random.int(count));
 
@@ -86,6 +87,7 @@ let makeMaze = (~size=10, curPos, env) => {
       tileCenter,
       coords,
       distances,
+      goalDistance: targetDist,
       pathTimer: Timer.createEmpty(Shared.animateTime),
       pendingPath: Shared.Queue.empty,
       player: {
@@ -93,6 +95,7 @@ let makeMaze = (~size=10, curPos, env) => {
         vel: Geom.v0,
         size: playerSize,
       },
+      startTime: Reprocessing.Env.getTimeMs(env),
       target: goal,
       walls,
       path: Shared.LineSet.empty,
@@ -210,17 +213,24 @@ let movePlayer = ({player: {pos, vel, size}, walls}, env) => {
     keys
   );
 
+  let multiplier = size /. 15.;
+
+  let oneFrame = 1.0 /. 60.;
+  let speed = Reprocessing.Env.deltaTime(env) /. oneFrame;
+
   let slow = 0.8;
   let med = 0.9;
-  let acc = Geom.pectorToVector({Geom.dx: ax, dy: ay});
+  let acc = Geom.scaleVector(Geom.pectorToVector({Geom.dx: ax, dy: ay}), multiplier);
   let vel = acc.Geom.magnitude < 0.001 ? vel : Geom.addVectors(vel, acc);
   let vel = Geom.scaleVector(vel, med);
-  let vel = Geom.clampVector(vel, maxSpeed);
+  let vel = Geom.clampVector(vel, maxSpeed *. multiplier);
+
   /* let dx = ax == 0. ? player.dx *. slow : max(min(maxSpeed, player.dx +. ax), -. maxSpeed) *. med;
   let dy = ay == 0. ? player.dy *. slow : max(min(maxSpeed, player.dy +. ay), -. maxSpeed) *. med; */
   let vel = collide(size, pos, vel, walls);
   /* let x = player.x +. dx;
   let y = player.y +. dy; */
+  /* Geom.scaleVector(vel, speed) */
   {pos: Geom.addVectorToPoint(vel, pos), vel, size}
 };
 

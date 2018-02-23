@@ -73,6 +73,8 @@ let lerpTuples = ((x1, y1), (x2, y2), amount) => {
   (x1 +. dx *. amount, y1 +. dy *. amount)
 };
 
+let lerp = (a, b, amount) => a +. (b -. a) *. amount;
+
 module Circle = {
   type t = {rad: float, center: point};
 

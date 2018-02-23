@@ -91,6 +91,23 @@ let drawGoal = (size, target, alpha, env) => {
   Draw.ellipsef(~center=target, ~radx=size, ~rady=size, env);
 };
 
+let drawStatus = (textFont, state, env) => {
+
+    let count = Shared.LineSet.cardinal(state.path);
+    let ratio = float_of_int(count) /. float_of_int(state.goalDistance);
+    /* let rs = string_of_float(ratio); */
+    Draw.text(~font=textFont, ~body=
+    Printf.sprintf(
+      "%d / %d : %0.3f",
+      count, state.goalDistance, ratio
+    )
+    , ~pos=(40, 10), env);
+
+    let time = (Env.getTimeMs(env) -. state.startTime) /. 1000.;
+    Draw.text(~font=textFont, ~body=Printf.sprintf("%0.3f",  float_of_int(count) /. time), ~pos=(40, 30), env);
+
+};
+
 let draw = ({player, walls, target, throwTimer, throwing, path} as state, {textFont, width, height}, env) => {
   Draw.background(purple, env);
   drawLights(state, lightSize(player), env);
@@ -108,6 +125,7 @@ let draw = ({player, walls, target, throwTimer, throwing, path} as state, {textF
   }
   }, env);
   drawPower(throwTimer, env);
+  drawStatus(textFont, state, env);
 
   /* Draw.tint(Constants.black, env);
   state.coords |> Array.iter((((cx, cy), (x, y))) => {
@@ -125,7 +143,7 @@ let draw = ({player, walls, target, throwTimer, throwing, path} as state, {textF
   ()
 };
 
-let flyIn = (state, prevPos, percent, env) => {
+let flyIn = (state, percent, env) => {
   let an = cos(percent *. 3.14159 /. 2.);
   let size = (1000. -. lightSize(state.player)) *. an +. lightSize(state.player);
   drawLights(state, size, env);
@@ -147,7 +165,11 @@ let flyOut = (state, nextState, percent, env) => {
   drawGoal(state.player.size, state.target, 1. -. over, env);
   drawGoal(nextState.player.size, nextState.target, over, env);
 
-  let player = {...state.player, pos: Geom.lerpPos(state.player.pos, nextState.player.pos, percent)};
+  let player = {
+    ...state.player,
+    size: Geom.lerp(state.player.size, nextState.player.size, percent),
+    pos: Geom.lerpPos(state.player.pos, nextState.player.pos, percent)
+  };
 
   drawPlayerShadow(player, an, env);
   drawPlayer(player, an +. 1., env);
@@ -160,11 +182,11 @@ let draw = ({status} as context, env) => {
   | AnimateIn(prevState, state, timer) => {
       Draw.background(purple, env);
       switch prevState {
-      | None => flyIn(state, None, Timer.percent(timer), env)
+      | None => flyIn(state, Timer.percent(timer), env)
       | Some(prevState) => {
         switch (Timer.in2(timer)) {
         | `First(percent) => flyOut(prevState, state, percent, env)
-        | `Second(percent) => flyIn(state, Some(prevState.player.pos), percent, env)
+        | `Second(percent) => flyIn(state, percent, env)
         }
       }
       }
