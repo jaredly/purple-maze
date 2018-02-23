@@ -1,7 +1,7 @@
 open Shared;
 open Reprocessing;
 
-let makeMaze = (curPos) => {
+let makeMaze = (~size=10, curPos, env) => {
   /* Not so much */
   /* let module Board = Mazere.HexBox; */
   /* let module Board = Mazere.NewHexTriangle; */
@@ -13,9 +13,9 @@ let makeMaze = (curPos) => {
   /* let module Board = Mazere.FourSquare; */
   let modules: array((module Mazere.SimpleBoard.T)) = [|
     (module Mazere.NewRect),
-    (module Mazere.TriangleBoard),
     (module Mazere.SquareTriangle),
-    (module Mazere.Circle),
+    /* (module Mazere.TriangleBoard), */
+    /* (module Mazere.Circle), */
     (module Mazere.FourSquare),
     (module Mazere.TriangleBox),
   |];
@@ -26,9 +26,13 @@ let makeMaze = (curPos) => {
   let module Man = Mazere.Manager.F(Board, Alg);
 
   Man.randInit();
-  let (width, height) = (800., 800.);
+
+  let height = Reprocessing.Env.height(env) |> float_of_int;
+  let width = Reprocessing.Env.width(env) |> float_of_int;
+
+  /* let (width, height) = (800., 800.); */
   let min_margin = 10.;
-  let size_hint = 15;
+  let size_hint = 7;
 
   let with_margins = (width -. min_margin *. 2.0, height -. min_margin *. 2.0);
   let state = Man.init(with_margins, size_hint);
@@ -62,6 +66,7 @@ let makeMaze = (curPos) => {
 
   let coords = Man.allCoords(state);
 
+  let playerSize = state.scale /. 4.;
   /*
     To veirfy that the from_point calculation is correct.
     coords |> Array.iter(((coord, pos)) => {
@@ -76,11 +81,38 @@ let makeMaze = (curPos) => {
   }); */
 
   let coords = coords |> Array.map(((coord, pos)) => (Board.Coord.show(coord), pos));
-  (walls, player, goal, tileCenter, coords, distances);
+  /* (walls, player, goal, tileCenter, coords, distances); */
+  {
+      tileCenter,
+      coords,
+      distances,
+      pathTimer: Timer.createEmpty(Shared.animateTime),
+      pendingPath: Shared.Queue.empty,
+      player: {
+        pos: Geom.fromTuple(player),
+        vel: Geom.v0,
+        size: playerSize,
+      },
+      target: goal,
+      walls,
+      path: Shared.LineSet.empty,
+      currentPos: player,
+      throwTimer: Timer.createFull(10.),
+      throwing: None,
+      time: 0.,
+    }
 };
 
-let newGame = state => {
-  let (walls, (px, py), target, tileCenter, coords, distances) = makeMaze(Some(state.player.pos));
+let initialState = env => {
+  /* Js.log2("Random", Random.int(10)); */
+  Random.self_init();
+  /* let (walls, (px, py), target, tileCenter, coords, distances) = Step.makeMaze(None); */
+  makeMaze(None, env);
+};
+
+let newGame = (state, env) => {
+  makeMaze(Some(state.player.pos), env);
+  /* let (walls, (px, py), target, tileCenter, coords, distances) = makeMaze(Some(state.player.pos));
   {...state,
     walls,
     coords,
@@ -93,7 +125,7 @@ let newGame = state => {
     tileCenter,
     /* maze, */
     throwTimer: Timer.fill(state.throwTimer)
-  }
+  } */
 };
 
 let speed = 0.5;
@@ -255,7 +287,7 @@ let step = ({player, walls, target} as state, env) => {
   let state = { ...state, pathTimer, path, pendingPath };
 
   if (dist(target, (player.pos.Geom.x, player.pos.Geom.y)) < player.size) {
-    AnimateIn(Some(state), newGame(state), Timer.createEmpty(Shared.animateTime));
+    AnimateIn(Some(state), newGame(state, env), Timer.createEmpty(Shared.animateTime));
   } else {
     Playing({...state, player})
   }
@@ -264,7 +296,7 @@ let step = ({player, walls, target} as state, env) => {
 let step = ({status} as context, env) => {
   {...context, status: switch status {
   | Playing(state) => if (Env.keyPressed(Events.Escape, env)) {
-    AnimateIn(None, newGame(state), Timer.createEmpty(Shared.animateTime));
+    AnimateIn(None, newGame(state, env), Timer.createEmpty(Shared.animateTime));
   } else {
     step(state, env)
   }

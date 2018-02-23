@@ -11,13 +11,13 @@ let pathColor = Utils.color(~r=255, ~g=100, ~b=255, ~a=255);
 let withAlpha = ({Reprocessing_Common.r, g, b, a}, alpha) => {Reprocessing_Common.r, g, b, a: a *. alpha};
 
 let drawPower = (throwTimer, env) => {
-  Draw.strokeWeight(3, env);
+  Draw.strokeWeight(1, env);
   Draw.noFill(env);
-  Draw.stroke(Constants.black, env);
+  Draw.stroke(withAlpha(Constants.black, 0.6), env);
   Draw.rectf(~pos=(10., 10.), ~width=20., ~height=100., env);
 
   Draw.noStroke(env);
-  Draw.fill(Constants.black, env);
+  Draw.fill(withAlpha(Constants.black, 0.1), env);
   let height = 100. *. Timer.percent(throwTimer);
   Draw.rectf(~pos=(10., 110. -. height), ~width=20., ~height=height, env);
 };
@@ -35,13 +35,15 @@ let jumpPercent = ((timer, height)) => {
   sqrt(sin(percent *. 3.14159)) *. height;
 };
 
+let lightSize = (player) => player.size *. 4.;
+
 let drawJump = ({throwing, player} as state, env) => {
   /** Thrown light */
   switch throwing {
   | None => ()
   | Some((timer, height)) => {
     let p = jumpPercent((timer, height));
-    let top = 80. +. 200. *. p;
+    let top = lightSize(player) +. player.size *. 10. *. p;
     let full = top;
 
     Draw.fill(background, env);
@@ -82,20 +84,20 @@ let drawPlayer = (player, scale, env) => {
   Draw.ellipsef(~center=Geom.tuple(player.pos), ~radx=player.size *. scale, ~rady=player.size *. scale, env);
 };
 
-let drawGoal = (size, target, color, env) => {
-  Draw.stroke(background, env);
+let drawGoal = (size, target, alpha, env) => {
+  Draw.stroke(withAlpha(background, alpha), env);
   Draw.strokeWeight(5, env);
-  Draw.fill(color, env);
+  Draw.fill(withAlpha(purple, alpha), env);
   Draw.ellipsef(~center=target, ~radx=size, ~rady=size, env);
 };
 
 let draw = ({player, walls, target, throwTimer, throwing, path} as state, {textFont, width, height}, env) => {
   Draw.background(purple, env);
-  drawLights(state, 80., env);
+  drawLights(state, lightSize(player), env);
   drawJump(state, env);
   drawWalls(state.walls, ~textFont, purple, env);
   drawPath(state, env);
-  drawGoal(player.size, state.target, purple, env);
+  drawGoal(player.size, state.target, 1., env);
   drawPlayer(state.player, switch throwing {
   | None => 1.
   | Some((timer, height)) => {
@@ -125,10 +127,10 @@ let draw = ({player, walls, target, throwTimer, throwing, path} as state, {textF
 
 let flyIn = (state, prevPos, percent, env) => {
   let an = cos(percent *. 3.14159 /. 2.);
-  let size = (1000. -. 80.) *. an +. 80.;
+  let size = (1000. -. lightSize(state.player)) *. an +. lightSize(state.player);
   drawLights(state, size, env);
   drawWalls(state.walls, purple, env);
-  drawGoal(state.player.size, state.target, purple, env);
+  drawGoal(state.player.size, state.target, 1., env);
   drawPlayerShadow(state.player, an, env);
   drawPlayer(state.player, an +. 1., env);
   drawPower(state.throwTimer, env);
@@ -137,13 +139,13 @@ let flyIn = (state, prevPos, percent, env) => {
 let flyOut = (state, nextState, percent, env) => {
   let an = 1. -. percent;
   let an = cos(an *. 3.14159 /. 2.);
-  let size = (1000. -. 80.) *. an +. 80.;
+  let size = (1000. -. lightSize(state.player)) *. an +. lightSize(state.player);
   drawLights(state, size, env);
   let over = Geom.Ease.easeOutQuad(min(1., percent *. 2.));
   drawWalls(state.walls, withAlpha(purple, 1. -. over), env);
   drawWalls(nextState.walls, withAlpha(purple, over), env);
-  drawGoal(state.player.size, state.target, withAlpha(purple, 1. -. over), env);
-  drawGoal(nextState.player.size, nextState.target, withAlpha(purple, over), env);
+  drawGoal(state.player.size, state.target, 1. -. over, env);
+  drawGoal(nextState.player.size, nextState.target, over, env);
 
   let player = {...state.player, pos: Geom.lerpPos(state.player.pos, nextState.player.pos, percent)};
 

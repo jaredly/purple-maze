@@ -9,7 +9,7 @@ let setup = (assetDir, env) => {
     Reprocessing.Env.resizeable(false, env);
   };
 
-  Reprocessing.Env.size(~width=800, ~height=800, env);
+  Reprocessing.Env.size(~width=300, ~height=800, env);
   /* if (!Shared.isPhone) {
     let size = min(Reprocessing.Env.maxHeight(env), 800);
     Reprocessing.Env.size(~width=size / 2, ~height=size, env);
@@ -24,34 +24,12 @@ let setup = (assetDir, env) => {
     }
   }; */
 
-  Random.self_init();
   /* Random.init(100); */
   let height = Reprocessing.Env.height(env) |> float_of_int;
   let width = Reprocessing.Env.width(env) |> float_of_int;
 
-  /* Js.log2("Random", Random.int(10)); */
-  let (walls, (px, py), target, tileCenter, coords, distances) = Step.makeMaze(None);
-
   {
-    status: AnimateIn(None, {
-      tileCenter,
-      coords,
-      distances,
-      pathTimer: Timer.createEmpty(Shared.animateTime),
-      pendingPath: Shared.Queue.empty,
-      player: {
-        pos: {Geom.x: px, y: py},
-        vel: Geom.v0,
-        size: 10.,
-      },
-      target,
-      walls,
-      path: Shared.LineSet.empty,
-      currentPos: (px, py),
-      throwTimer: Timer.createFull(10.),
-      throwing: None,
-      time: 0.,
-    }, Timer.createEmpty(Shared.animateTime)),
+    status: AnimateIn(None, Step.initialState(env), Timer.createEmpty(Shared.animateTime)),
 
     height,
     width,
