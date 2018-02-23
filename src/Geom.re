@@ -33,6 +33,7 @@ let v0 = {magnitude: 0., theta: 0.};
 type pector = {dx: float, dy: float};
 
 let tuple = ({x, y}) => (x, y);
+let intTuple = ({x, y}) => (int_of_float(x), int_of_float(y));
 let fromTuple = ((x, y)) => {x, y};
 let dist = (p1, p2) => {
   let dx = p2.x -. p1.x;
@@ -49,6 +50,7 @@ let addVectorToPoint = ({magnitude, theta}, {x, y}) => {
   {x: x +. cos(theta) *. magnitude, y: y +. sin(theta) *. magnitude}
 };
 let vectorToPector = ({magnitude, theta}) => {dx: cos(theta) *. magnitude, dy: sin(theta) *. magnitude};
+let angleTo = (p1, p2) => atan2(p2.y -. p1.y, p2.x -. p1.x);
 let pectorToVector = (p) => {
   magnitude: pdist(p),
   theta: atan2(p.dy, p.dx)
@@ -138,35 +140,6 @@ module Circle = {
 
 let pi = 3.14159;
 let tau = pi *. 2.;
-
-let clockwiseAngleDiff = (first, second) => {
-  let first = mod_float(first, tau);
-  let second = mod_float(first, tau);
-  let diff = second -. first;
-  if (diff < 0.) {
-    diff +. tau
-  } else {
-    diff
-  }
-  /* if (first > second) {
-    second -. mod_float(first, tau)
-  } else {
-    mod_float((second -. first), tau)
-  } */
-};
-
-[@test [
-  /* (0., 1., 0.5),
-  (-0.1, 0.1, 0.0),
-  (pi -. 0.1, -. pi +. 0.1, pi),
-  (pi -. 0.1, -. pi +. 0.1, -. pi), */
-  (tau -. 0.1, tau, -0.05),
-  (pi, pi +. 0.1, -. pi +. 0.05)
-]]
-let isThetaBetween = (low, high, test) => {
-  let a = clockwiseAngleDiff(low, test);
-  a >= 0. && a <= clockwiseAngleDiff(low, high)
-};
 
 let rec normalize = x => {
   if (x < -. pi) normalize(x +. tau)

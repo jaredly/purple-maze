@@ -1,5 +1,24 @@
-open Shared;
+open Play_types;
 open Reprocessing;
+
+
+let pathTime = 0.1;
+
+let animateOutTime = 1.;
+
+let animateInForSize = size => {
+  if (size <= 6) {
+    1.
+  } else if (size <= 8) {
+    1.3
+  } else if (size <= 10) {
+    2.
+  } else if (size <= 13) {
+    3.
+  } else {
+    4.
+  }
+};
 
 let makeMaze = (~size=10, curPos, env) => {
   /* Not so much */
@@ -32,8 +51,9 @@ let makeMaze = (~size=10, curPos, env) => {
 
   /* let (width, height) = (800., 800.); */
   let min_margin = 10.;
-  let size_hint = 6;
-  let size_hint = 8;
+  /* let size_hint = 6;
+  let size_hint = 8; */
+  let size_hint = size;
 
   let with_margins = (width -. min_margin *. 2.0, height -. min_margin *. 2.0);
   let state = Man.init(with_margins, size_hint);
@@ -88,20 +108,21 @@ let makeMaze = (~size=10, curPos, env) => {
       coords,
       distances,
       goalDistance: targetDist,
-      pathTimer: Timer.createEmpty(Shared.pathTime),
-      pendingPath: Shared.Queue.empty,
+      pathTimer: Timer.createEmpty(pathTime),
+      pendingPath: MyQueue.empty,
       player: {
         pos: Geom.fromTuple(player),
         vel: Geom.v0,
         size: playerSize,
       },
+      mazeSize: size,
       startTime: Reprocessing.Env.getTimeMs(env),
       target: goal,
       walls,
-      path: Shared.LineSet.empty,
+      path: LineSet.empty,
       currentPos: player,
-      throwTimer: Timer.createFull(10.),
-      throwing: None,
+      jumpTimer: Timer.createFull(10.),
+      jumping: None,
       time: 0.,
     }
 };
@@ -181,7 +202,7 @@ let collide = (playerSize, pos, vel, walls) => {
 
 let dist = ((x, y), (px, py)) => sqrt((px -. x) *. (px -. x) +. (py -. y) *. (py -. y));
 
-let normalizePath = ((p1, p2)) => p1 > p2 ? (p1, p2) : (p2, p1);
+let normalizePath = ((p1, p2)) => compare(p1, p2) > 0 ? (p1, p2) : (p2, p1);
 
 let movePlayer = ({player: {pos, vel, size}, walls}, env) => {
 
@@ -218,29 +239,29 @@ let movePlayer = ({player: {pos, vel, size}, walls}, env) => {
   {pos: Geom.addVectorToPoint(vel, pos), vel, size}
 };
 
-let step = (mazeSize, {player, walls, target} as state, env) => {
+let step = ({player, walls, target} as state, env) => {
 
-  let state = if (Env.keyPressed(Events.Space, env) && Timer.percent(state.throwTimer) > 0.1) {
-    let height = Timer.percent(state.throwTimer);
+  let state = if (Env.keyPressed(Events.Space, env) && Timer.percent(state.jumpTimer) > 0.1) {
+    let height = Timer.percent(state.jumpTimer);
     {
       ...state,
-      throwTimer: Timer.restart(state.throwTimer),
-      throwing: Some((Timer.createEmpty(height *. 2.), height)),
+      jumpTimer: Timer.restart(state.jumpTimer),
+      jumping: Some((Timer.createEmpty(height *. 2.), height)),
       player: {...player, vel: Geom.v0}
     }
   } else {
     state
   };
 
-  let player = switch state.throwing {
+  let player = switch state.jumping {
   | None => movePlayer(state, env);
   | _ => state.player
   };
 
   let state = {
     ...state,
-    throwTimer: Timer.inc(state.throwTimer, env),
-    throwing: switch state.throwing {
+    jumpTimer: Timer.inc(state.jumpTimer, env),
+    jumping: switch state.jumping {
     | None => None
     | Some((timer, height)) when Timer.isFull(timer) => None
     | Some((timer, height)) => Some((Timer.inc(timer, env), height))
@@ -250,16 +271,16 @@ let step = (mazeSize, {player, walls, target} as state, env) => {
   let pos = state.tileCenter((player.pos.Geom.x, player.pos.Geom.y));
   /* Printf.printf("%f, %f - %f %f\n", fst(pos), snd(pos), x, y); */
   /* Format.print_flush(); */
-  let state = if (pos != state.currentPos && !Shared.LineSet.mem(normalizePath((state.currentPos, pos)), state.path)) {
+  let state = if (pos != state.currentPos && !LineSet.mem(normalizePath((state.currentPos, pos)), state.path)) {
     {
       ...state,
       currentPos: pos,
-      pathTimer: if (Shared.Queue.isEmpty(state.pendingPath)) {
-        Timer.createEmpty(Shared.pathTime)
+      pathTimer: if (MyQueue.isEmpty(state.pendingPath)) {
+        Timer.createEmpty(pathTime)
       } else {
         state.pathTimer
       },
-      pendingPath: Shared.Queue.add((state.currentPos, pos), state.pendingPath)
+      pendingPath: MyQueue.add((state.currentPos, pos), state.pendingPath)
     }
   } else {
     {...state, currentPos: pos}
@@ -268,35 +289,80 @@ let step = (mazeSize, {player, walls, target} as state, env) => {
   let (pathTimer, isFull) = Timer.incLoop(state.pathTimer, env);
   let (path, pendingPath) = isFull
     ? {
-      switch (Shared.Queue.take(state.pendingPath)) {
+      switch (MyQueue.take(state.pendingPath)) {
       | None => (state.path, state.pendingPath)
-      | Some((el, pendingPath)) => (Shared.LineSet.add(normalizePath(el), state.path), pendingPath)
+      | Some((el, pendingPath)) => (LineSet.add(normalizePath(el), state.path), pendingPath)
       }
     }
     : (state.path, state.pendingPath);
-  let pendingPath = switch (Shared.Queue.take(pendingPath)) {
-  | Some((item, rest)) when Shared.LineSet.mem(normalizePath(item), state.path) => rest
+  let pendingPath = switch (MyQueue.take(pendingPath)) {
+  | Some((item, rest)) when LineSet.mem(normalizePath(item), state.path) => rest
   | _ => pendingPath
   };
   let state = { ...state, pathTimer, path, pendingPath };
 
-  if (dist(target, (player.pos.Geom.x, player.pos.Geom.y)) < player.size) {
-    AnimateIn(Some((state, Timer.createEmpty(Shared.animateOutTime))), newGame(~size=mazeSize, state, env), Timer.createEmpty(Shared.animateInForSize(mazeSize)));
+  if (dist(target, (player.pos.Geom.x, player.pos.Geom.y)) < player.size *. 1.5) {
+    /** TODO add in last piece of path */
+    let isAtTarget = pos == state.tileCenter(target);
+    let left = MyQueue.dump(state.pendingPath);
+    let path = List.fold_left(
+      ((path, item) => LineSet.add(normalizePath(item), path)),
+      state.path,
+      isAtTarget ? left : [(pos, state.tileCenter(target)), ...left]
+    );
+    `Won({...state, path})
   } else {
-    Playing({...state, player})
+    `Continue({...state, player})
   }
 };
 
-let step = ({status} as context, env) => {
-  {...context, status: switch status {
-  | Playing(state) => if (Env.keyPressed(Events.Escape, env)) {
-    AnimateIn(None, newGame(~size=context.mazeSize, state, env), Timer.createEmpty(Shared.animateInForSize(context.mazeSize)));
-  } else {
-    step(context.mazeSize, state, env)
+let step = (status, context, env) => {
+  switch status {
+  | Playing(state) =>
+    switch (step(state, env)) {
+    | `Continue(state) => `Continue(Playing(state))
+    | `Won(state) => {
+      `Won(state)
+    }
+    }
+  | AnimateIn(Some((prevState, outTimer, score)), state, inTimer) when !Timer.isFull(outTimer) => `Continue(AnimateIn(Some((prevState, Timer.inc(outTimer, env), score)), state, inTimer))
+  | AnimateIn(prevState, state, timer) when Timer.isFull(timer) => `Continue(Playing(state))
+  | AnimateIn(prevState, state, timer) => `Continue(AnimateIn(prevState, state, Timer.inc(timer, env)))
   }
-  | AnimateIn(prevState, state, timer) when Timer.isFull(timer) => Playing(state)
-  | AnimateIn(Some((prevState, outTimer)), state, inTimer) when !Timer.isFull(outTimer) => AnimateIn(Some((prevState, Timer.inc(outTimer, env))), state, inTimer)
-  | AnimateIn(prevState, state, timer) => AnimateIn(prevState, state, Timer.inc(timer, env))
-  | _ => status
-  }}
+};
+
+let start = (boardSize, env) => {
+  AnimateIn(None, initialState(boardSize, env), Timer.createEmpty(animateInForSize(boardSize)));
+};
+
+let stars = (pathLength, avgSpeed) => {
+  if (pathLength < 1.15) {
+    avgSpeed < 1.5 ? TwoSlow : Three
+  } else if (pathLength < 1.5) {
+    Two
+  } else {
+    One
+  }
+};
+
+let continue = (prevState, boardSize, env) => {
+  let count = LineSet.cardinal(prevState.path);
+  let ratio = float_of_int(count) /. float_of_int(prevState.goalDistance);
+
+  /* Printf.printf("Finished %d %d %0.2f\n", count, prevState.goalDistance, ratio);
+  LineSet.iter((((x1, y1), (x2, y2))) => {
+    Printf.printf("%0.2f, %0.2f - %0.2f, %0.2f\n", x1, y1, x2, y2);
+  }, prevState.path);
+  let (x, y) = prevState.target;
+  Printf.printf("Finished %0.2f %0.2f\n", x, y);
+  print_newline(); */
+
+  let time = (Env.getTimeMs(env) -. prevState.startTime) /. 1000.;
+  let avgSpeed = float_of_int(count) /. time;
+  let score = {
+    pathLength: ratio,
+    avgSpeed,
+    stars: stars(ratio, avgSpeed)
+  };
+  AnimateIn(Some((prevState, Timer.createEmpty(animateOutTime), score)), newGame(~size=boardSize, prevState, env), Timer.createEmpty(animateInForSize(boardSize)));
 };

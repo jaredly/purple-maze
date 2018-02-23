@@ -28,25 +28,33 @@ let setup = (assetDir, env) => {
   let height = Reprocessing.Env.height(env) |> float_of_int;
   let width = Reprocessing.Env.width(env) |> float_of_int;
 
-  let size = 8;
-  {
-    status: AnimateIn(None, Step.initialState(size, env), Timer.createEmpty(Shared.animateInForSize(size))),
+  let size = 13;
+  let size = 5;
+  /* let size = 3; */
 
+  let context = {
     height,
     width,
-    mazeSize: size,
     Shared.titleFont: Reprocessing.Draw.loadFont( ~filename=assetDir /+ "Orbitron-Black-48.fnt", ~isPixel=false, env),
     smallTitleFont: Reprocessing.Draw.loadFont( ~filename=assetDir /+ "Orbitron-Regular-24.fnt", ~isPixel=false, env),
     boldTextFont: Reprocessing.Draw.loadFont( ~filename=assetDir /+ "Orbitron-Black-24.fnt", ~isPixel=false, env),
     textFont: Reprocessing.Draw.loadFont( ~filename=assetDir /+ "Orbitron-Regular-24.fnt", ~isPixel=false, env),
     smallFont: Reprocessing.Draw.loadFont( ~filename=assetDir /+ "Orbitron-Regular-16.fnt", ~isPixel=false, env),
+  };
+
+  let gameState = FreePlay.init(size, context, env);
+
+  {
+    Shared.screenState: gameState,
+    context
   }
 };
 
-let draw = (state, env) => {
-  let state = Step.step(state, env);
-  IcyDraw.draw(state, env);
-  state
+let draw = ({Shared.screenState, context}, env) => {
+  open Shared;
+  let screenState = FreePlay.step(screenState, context, env);
+  FreePlay.draw(screenState, context, env);
+  {screenState, context}
 };
 
 let run = (assetDir, _) => Reprocessing.run(
