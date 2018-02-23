@@ -78,11 +78,25 @@ type state = {
   time: float,
 };
 
-let animateTime = 2.;
+let animateOutTime = 1.;
+
+let animateInForSize = size => {
+  if (size <= 6) {
+    1.
+  } else if (size <= 8) {
+    1.3
+  } else if (size <= 10) {
+    1.5
+  } else if (size <= 13) {
+    2.
+  } else {
+    2.5
+  }
+};
 
 type status =
   | Start
-  | AnimateIn(option(state), state, Timer.t)
+  | AnimateIn(option((state, Timer.t)), state, Timer.t)
   | Playing(state)
   | Done(float);
 
@@ -90,6 +104,7 @@ type context = {
   status,
   height: float,
   width: float,
+  mazeSize: int,
   smallFont: Reprocessing.fontT,
   textFont: Reprocessing.fontT,
   titleFont: Reprocessing.fontT,

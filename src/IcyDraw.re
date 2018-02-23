@@ -183,11 +183,16 @@ let draw = ({status} as context, env) => {
       Draw.background(purple, env);
       switch prevState {
       | None => flyIn(state, Timer.percent(timer), env)
-      | Some(prevState) => {
-        switch (Timer.in2(timer)) {
+      | Some((prevState, outTimer)) => {
+        if (!Timer.isFull(outTimer)) {
+          flyOut(prevState, state, Timer.percent(outTimer), env)
+        } else {
+          flyIn(state, Timer.percent(timer), env)
+        }
+        /* switch (Timer.in2(timer)) {
         | `First(percent) => flyOut(prevState, state, percent, env)
         | `Second(percent) => flyIn(state, percent, env)
-        }
+        } */
       }
       }
 

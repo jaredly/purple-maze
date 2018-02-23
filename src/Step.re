@@ -88,7 +88,7 @@ let makeMaze = (~size=10, curPos, env) => {
       coords,
       distances,
       goalDistance: targetDist,
-      pathTimer: Timer.createEmpty(Shared.animateTime),
+      pathTimer: Timer.createEmpty(Shared.pathTime),
       pendingPath: Shared.Queue.empty,
       player: {
         pos: Geom.fromTuple(player),
@@ -106,29 +106,13 @@ let makeMaze = (~size=10, curPos, env) => {
     }
 };
 
-let initialState = env => {
-  /* Js.log2("Random", Random.int(10)); */
+let initialState = (size, env) => {
   Random.self_init();
-  /* let (walls, (px, py), target, tileCenter, coords, distances) = Step.makeMaze(None); */
-  makeMaze(None, env);
+  makeMaze(~size, None, env);
 };
 
-let newGame = (state, env) => {
-  makeMaze(Some(state.player.pos), env);
-  /* let (walls, (px, py), target, tileCenter, coords, distances) = makeMaze(Some(state.player.pos));
-  {...state,
-    walls,
-    coords,
-    distances,
-    pathTimer: Timer.createEmpty(Shared.animateTime),
-    pendingPath: Shared.Queue.empty,
-    player: {pos: {Geom.x: px, y: py}, vel: Geom.v0, size: 10.}, target,
-    path: Shared.LineSet.empty,
-    currentPos: (px, py),
-    tileCenter,
-    /* maze, */
-    throwTimer: Timer.fill(state.throwTimer)
-  } */
+let newGame = (~size, state, env) => {
+  makeMaze(~size, Some(state.player.pos), env);
 };
 
 let speed = 0.5;
@@ -234,7 +218,7 @@ let movePlayer = ({player: {pos, vel, size}, walls}, env) => {
   {pos: Geom.addVectorToPoint(vel, pos), vel, size}
 };
 
-let step = ({player, walls, target} as state, env) => {
+let step = (mazeSize, {player, walls, target} as state, env) => {
 
   let state = if (Env.keyPressed(Events.Space, env) && Timer.percent(state.throwTimer) > 0.1) {
     let height = Timer.percent(state.throwTimer);
@@ -297,7 +281,7 @@ let step = ({player, walls, target} as state, env) => {
   let state = { ...state, pathTimer, path, pendingPath };
 
   if (dist(target, (player.pos.Geom.x, player.pos.Geom.y)) < player.size) {
-    AnimateIn(Some(state), newGame(state, env), Timer.createEmpty(Shared.animateTime));
+    AnimateIn(Some((state, Timer.createEmpty(Shared.animateOutTime))), newGame(~size=mazeSize, state, env), Timer.createEmpty(Shared.animateInForSize(mazeSize)));
   } else {
     Playing({...state, player})
   }
@@ -306,11 +290,12 @@ let step = ({player, walls, target} as state, env) => {
 let step = ({status} as context, env) => {
   {...context, status: switch status {
   | Playing(state) => if (Env.keyPressed(Events.Escape, env)) {
-    AnimateIn(None, newGame(state, env), Timer.createEmpty(Shared.animateTime));
+    AnimateIn(None, newGame(~size=context.mazeSize, state, env), Timer.createEmpty(Shared.animateInForSize(context.mazeSize)));
   } else {
-    step(state, env)
+    step(context.mazeSize, state, env)
   }
   | AnimateIn(prevState, state, timer) when Timer.isFull(timer) => Playing(state)
+  | AnimateIn(Some((prevState, outTimer)), state, inTimer) when !Timer.isFull(outTimer) => AnimateIn(Some((prevState, Timer.inc(outTimer, env))), state, inTimer)
   | AnimateIn(prevState, state, timer) => AnimateIn(prevState, state, Timer.inc(timer, env))
   | _ => status
   }}

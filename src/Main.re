@@ -28,11 +28,13 @@ let setup = (assetDir, env) => {
   let height = Reprocessing.Env.height(env) |> float_of_int;
   let width = Reprocessing.Env.width(env) |> float_of_int;
 
+  let size = 8;
   {
-    status: AnimateIn(None, Step.initialState(env), Timer.createEmpty(Shared.animateTime)),
+    status: AnimateIn(None, Step.initialState(size, env), Timer.createEmpty(Shared.animateInForSize(size))),
 
     height,
     width,
+    mazeSize: size,
     Shared.titleFont: Reprocessing.Draw.loadFont( ~filename=assetDir /+ "Orbitron-Black-48.fnt", ~isPixel=false, env),
     smallTitleFont: Reprocessing.Draw.loadFont( ~filename=assetDir /+ "Orbitron-Regular-24.fnt", ~isPixel=false, env),
     boldTextFont: Reprocessing.Draw.loadFont( ~filename=assetDir /+ "Orbitron-Black-24.fnt", ~isPixel=false, env),
