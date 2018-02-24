@@ -235,6 +235,7 @@ let drawStatus = (textFont, state, env) => {
 
 let draw = ({player, walls, target, jumpTimer, jumping, path} as state, {Shared.textFont, width, height}, env) => {
   Draw.background(purple, env);
+
   drawLights(state, lightSize(player, state.mazeSize), env);
   drawJump(state, env);
   drawWalls(state.walls, ~textFont, purple, env);
@@ -249,6 +250,7 @@ let draw = ({player, walls, target, jumpTimer, jumping, path} as state, {Shared.
     1. +. p
   }
   }, env);
+
   drawPower(jumpTimer, env);
   /* This was just for debugging I think */
   drawStatus(textFont, state, env);
@@ -274,11 +276,13 @@ let draw = ({player, walls, target, jumpTimer, jumping, path} as state, {Shared.
 let flyIn = (state, percent, env) => {
   let an = cos(percent *. 3.14159 /. 2.);
   let size = (1000. -. lightSize(state.player, state.mazeSize)) *. an +. lightSize(state.player, state.mazeSize);
+
   drawLights(state, size, env);
   drawWalls(state.walls, purple, env);
   drawGoal(state.player.size, state.target, 1., env);
   drawPlayerShadow(state.player, an, env);
   drawPlayer(state.player, an +. 1., env);
+
   drawPower(state.jumpTimer, env);
 };
 
@@ -286,6 +290,7 @@ let flyOut = (state, nextState, percent, score, context, env) => {
   let an = 1. -. percent;
   let an = cos(an *. 3.14159 /. 2.);
   let size = (1000. -. lightSize(state.player, state.mazeSize)) *. an +. lightSize(state.player, state.mazeSize);
+
   drawLights(state, size, env);
   let over = Geom.Ease.easeOutQuad(min(1., percent *. 2.));
   drawWalls(state.walls, withAlpha(purple, 1. -. over), env);
@@ -301,10 +306,12 @@ let flyOut = (state, nextState, percent, score, context, env) => {
 
   drawPlayerShadow(player, an, env);
   drawPlayer(player, an +. 1., env);
-  drawPower(state.jumpTimer, env);
 
   let fade = percent > 0.7 ? Geom.Ease.easeInQuad((1.0 -. percent) /. 0.3) : 1.;
   drawScore(player, score, an +. 1., fade, env);
+
+
+  drawPower(state.jumpTimer, env);
 
   /* let (x, y) = Geom.intTuple(state.player.pos);
   Draw.text(~font=context.Shared.titleFont, ~body=switch score.stars {

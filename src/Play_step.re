@@ -59,9 +59,20 @@ let makeMaze = (~size=10, curPos, env) => {
   let state = Man.init(with_margins, size_hint);
   let state = Man.loop_to_end(state);
 
-  let walls = Man.all_walls(state);
+  let (boardWidth, boardHeight) = state.outsize;
+  let offX = (width -. boardWidth) /. 2.;
+  let offY = (height -. boardHeight) /. 2.;
+  let offset = ((x, y)) => (x +. offX, y +. offY);
+  let backset = ((x, y)) => (x -. offX, y -. offY);
+
+  let offsetWall = wall => switch wall {
+  | Mazere.Border.Arc((cx, cy, a, b, c)) => Mazere.Border.Arc((cx +. offX, cy +. offY, a, b, c))
+  | Line(((a, b), (c, d))) => Mazere.Border.Line(((a +. offX, b +. offY), (c +. offX, d +. offY)))
+  };
+
+  let walls = Man.all_walls(state) |> List.map(offsetWall);
   /* let walls = []; */
-  let tileCenter = (pos) => Board.tile_center(state.shape, state.scale, Board.from_point(state.shape, state.scale, pos));
+  let tileCenter = (pos) => Board.tile_center(state.shape, state.scale, Board.from_point(state.shape, state.scale, backset(pos))) |> offset;
   let playerCoord = switch curPos {
   | Some(pos) => {
     let coord = Board.from_point(state.shape, state.scale, Geom.tuple(pos));
@@ -76,9 +87,9 @@ let makeMaze = (~size=10, curPos, env) => {
   };
 
   let distances = Man.distanceFromCoord(state, playerCoord)
-  |> Array.map(((coord, i)) => (Board.tile_center(state.shape, state.scale, coord), i));
+  |> Array.map(((coord, i)) => (Board.tile_center(state.shape, state.scale, coord) |> offset, i));
 
-  let player = Man.tileCenter(state, playerCoord);
+  let player = Man.tileCenter(state, playerCoord) |> offset;
   let max = Array.fold_left((m, (_, dist)) => max(m, dist), 0, distances);
   let targetDist = max * 3 / 4;
   let potentialGoals = Array.fold_left((matching, (pos, dist)) => dist == targetDist ? [pos, ...matching] : matching, [], distances);
