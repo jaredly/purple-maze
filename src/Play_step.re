@@ -118,6 +118,7 @@ let makeMaze = (~size=10, curPos, env) => {
       tileCenter,
       coords,
       distances,
+      mouseWasDown: false,
       goalDistance: targetDist,
       pathTimer: Timer.createEmpty(pathTime),
       pendingPath: MyQueue.empty,
@@ -157,15 +158,6 @@ let keys = [
 
 let maxSpeed = 7.;
 
-/* let lineRect = ((a, b), (c, d), stroke) => {
-  let hs = stroke /. 2.;
-  if (a <= c && b <= d) {
-    ((a -. hs, b -. hs), (max(c -. a, stroke)), max(d -. b, stroke))
-  } else {
-    ((c -. hs, d -. hs), (max(a -. c, stroke)), max(b -. d, stroke))
-  }
-}; */
-
 let collide = (playerSize, pos, vel, walls) => {
   List.fold_left(
     (vel, wall) => switch wall {
@@ -191,19 +183,6 @@ let collide = (playerSize, pos, vel, walls) => {
       } else {
         vel
       }
-      /* let (pos, w, h) = lineRect(p1, p2, 6.);
-      let intersect = Reprocessing.Utils.intersectRectCircle(~rectPos=pos, ~rectH=h, ~rectW=w, ~circleRad=Shared.playerSize);
-      if (intersect(~circlePos=(x +. dx, y +. dy))) {
-        if (intersect(~circlePos=(x, y +. dy))) {
-          (dx, 0.)
-        } else if (intersect(~circlePos=(x +. dx, y))) {
-          (0., dy)
-        } else {
-          (0., 0.)
-        }
-      } else {
-        (dx, dy)
-      } */
     }
     },
     vel,
@@ -215,19 +194,40 @@ let dist = ((x, y), (px, py)) => sqrt((px -. x) *. (px -. x) +. (py -. y) *. (py
 
 let normalizePath = ((p1, p2)) => compare(p1, p2) > 0 ? (p1, p2) : (p2, p1);
 
-let movePlayer = ({player: {pos, vel, size}, walls}, env) => {
+let joystickSize = 100.;
+let joystickMargin = 20.;
 
-  let (ax, ay, any) = List.fold_left(
-    ((dx, dy, any), (k, (ax, ay))) => {
-      if (Env.key(k, env)) {
-        (dx +. ax, dy +. ay, true)
-      } else {
-        (dx, dy, any)
-      }
-    },
-    (0., 0., false),
-    keys
-  );
+let joystickPos = env => {
+  let height = Env.height(env) |> float_of_int;
+  {Geom.x: joystickSize +. joystickMargin, y: height -. joystickMargin -. joystickSize};
+};
+
+let userInput = env => {
+  if (Env.mousePressed(env)) {
+    let pos = Geom.fromIntTuple(Env.mouse(env));
+    let width = Env.width(env) |> float_of_int;
+    let height = Env.height(env) |> float_of_int;
+    let joystick = joystickPos(env);
+    let angle = Geom.angleTo(joystick, pos);
+    {Geom.theta: angle, magnitude: speed}
+  } else {
+    let (ax, ay, any) = List.fold_left(
+      ((dx, dy, any), (k, (ax, ay))) => {
+        if (Env.key(k, env)) {
+          (dx +. ax, dy +. ay, true)
+        } else {
+          (dx, dy, any)
+        }
+      },
+      (0., 0., false),
+      keys
+    );
+
+    Geom.pectorToVector({Geom.dx: ax, dy: ay})
+  }
+};
+
+let movePlayer = ({player: {pos, vel, size}, walls}, env) => {
 
   let multiplier = size /. 15.;
 
@@ -236,7 +236,7 @@ let movePlayer = ({player: {pos, vel, size}, walls}, env) => {
 
   let slow = 0.8;
   let med = 0.9;
-  let acc = Geom.scaleVector(Geom.pectorToVector({Geom.dx: ax, dy: ay}), multiplier);
+  let acc = Geom.scaleVector(userInput(env), multiplier);
   let vel = acc.Geom.magnitude < 0.001 ? vel : Geom.addVectors(vel, acc);
   let vel = Geom.scaleVector(vel, med);
   let vel = Geom.clampVector(vel, maxSpeed *. multiplier);
@@ -250,9 +250,19 @@ let movePlayer = ({player: {pos, vel, size}, walls}, env) => {
   {pos: Geom.addVectorToPoint(vel, pos), vel, size}
 };
 
+let pressedJump = (state, env) => {
+  Env.keyPressed(Events.Space, env) ||
+  (!state.mouseWasDown && Env.mousePressed(env) && {
+    let pos = Geom.fromIntTuple(Env.mouse(env));
+    let width = Env.width(env);
+    let height = Env.height(env);
+    Geom.dist(pos, {Geom.x: joystickSize, y: float_of_int(height) -. joystickSize}) < joystickSize /. 3.
+  })
+};
+
 let step = ({player, walls, target} as state, env) => {
 
-  let state = if (Env.keyPressed(Events.Space, env) && Timer.percent(state.jumpTimer) > 0.1) {
+  let state = if (state.jumping == None && pressedJump(state, env) && Timer.percent(state.jumpTimer) > 0.1) {
     let height = Timer.percent(state.jumpTimer);
     {
       ...state,
@@ -263,6 +273,8 @@ let step = ({player, walls, target} as state, env) => {
   } else {
     state
   };
+
+  let state = {...state, mouseWasDown: Env.mousePressed(env)};
 
   let player = switch state.jumping {
   | None => movePlayer(state, env);

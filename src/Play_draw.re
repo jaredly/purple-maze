@@ -322,6 +322,22 @@ let flyOut = (state, nextState, percent, score, context, env) => {
   }, ~pos=(x, y < 50 ? y + 20 : y - 20), env); */
 };
 
+/** TODO have a state vbl "using keyboard" and if you do, the joystick disappears */
+let drawJoystick = (env) => {
+  let width = Reprocessing.Env.width(env) |> float_of_int;
+  let height = Reprocessing.Env.height(env) |> float_of_int;
+  let size = Play_step.joystickSize;
+  let margin = Play_step.joystickMargin;
+  Draw.fill(Reprocessing.Utils.color(~r=100, ~g=0, ~b=100, ~a=50), env);
+  Draw.ellipsef(~center=(size +. margin, height -. size -. margin), ~radx=size, ~rady=size, env);
+  Draw.stroke(Reprocessing.Utils.color(~r=100, ~g=0, ~b=100, ~a=100), env);
+  Draw.noFill(env);
+  Draw.strokeWeight(3, env);
+  /** TODO maybe a hexagon instead */
+  Draw.ellipsef(~center=(size +. margin, height -. size -. margin), ~radx=size /. 3., ~rady=size /. 3., env);
+  Draw.noStroke(env);
+};
+
 let draw = (status, context, env) => {
   switch status {
   | Playing(state) => draw(state, context, env)
@@ -338,5 +354,6 @@ let draw = (status, context, env) => {
       }
       }
   }
-  }
+  };
+  drawJoystick(env);
 };

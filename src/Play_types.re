@@ -9,6 +9,7 @@ let module LineSet = Set.Make({
 type player = {pos: Geom.point, vel: Geom.vector, size: float};
 
 type state = {
+  mouseWasDown: bool,
   walls: list(Mazere.Border.t),
   coords: array((string, (float, float))),
   distances: array(((float, float), int)),

@@ -34,6 +34,7 @@ type pector = {dx: float, dy: float};
 
 let tuple = ({x, y}) => (x, y);
 let intTuple = ({x, y}) => (int_of_float(x), int_of_float(y));
+let fromIntTuple = ((x, y)) => {x: float_of_int(x), y: float_of_int(y)};
 let fromTuple = ((x, y)) => {x, y};
 let dist = (p1, p2) => {
   let dx = p2.x -. p1.x;
