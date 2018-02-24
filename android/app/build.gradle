@@ -23,7 +23,7 @@ android {
     compileSdkVersion = 21
     buildToolsVersion = '25.0.0'
     defaultConfig {
-        applicationId = 'com.jaredforsyth.icytower'
+        applicationId = 'com.jaredforsyth.purplemaze'
         minSdkVersion 21
         targetSdkVersion 21
         versionCode = 3

@@ -9,8 +9,7 @@ let setup = (assetDir, env) => {
     Reprocessing.Env.resizeable(false, env);
   };
 
-  Reprocessing.Env.size(~width=400, ~height=800, env);
-  /* if (!Shared.isPhone) {
+  if (!Shared.isPhone) {
     let size = min(Reprocessing.Env.maxHeight(env), 800);
     Reprocessing.Env.size(~width=size / 2, ~height=size, env);
   } else if (Shared.fakePhone) {
@@ -22,7 +21,7 @@ let setup = (assetDir, env) => {
     | Some(_)
     | None => Reprocessing.Env.size(~width=340, ~height=640, env)
     }
-  }; */
+  };
 
   /* Random.init(100); */
   let height = Reprocessing.Env.height(env) |> float_of_int;

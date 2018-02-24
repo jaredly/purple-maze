@@ -1,4 +1,4 @@
-package com.jaredforsyth.icytower;
+package com.jaredforsyth.purplemaze;
 
 import com.jaredforsyth.reasongl.ReasonglActivity;
 
