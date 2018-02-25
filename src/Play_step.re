@@ -202,13 +202,13 @@ let joystickPos = env => {
   {Geom.x: joystickSize +. joystickMargin, y: height -. joystickMargin -. joystickSize};
 };
 
-let userInput = env => {
+let userInput = (playerPos, env) => {
   if (Env.mousePressed(env)) {
     let pos = Geom.fromIntTuple(Env.mouse(env));
     let width = Env.width(env) |> float_of_int;
     let height = Env.height(env) |> float_of_int;
-    let joystick = joystickPos(env);
-    let angle = Geom.angleTo(joystick, pos);
+    /* let joystick = joystickPos(env); */
+    let angle = Geom.angleTo(playerPos, pos);
     {Geom.theta: angle, magnitude: speed}
   } else {
     let (ax, ay, any) = List.fold_left(
@@ -236,7 +236,7 @@ let movePlayer = ({player: {pos, vel, size}, walls}, env) => {
 
   let slow = 0.8;
   let med = 0.9;
-  let acc = Geom.scaleVector(userInput(env), multiplier);
+  let acc = Geom.scaleVector(userInput(pos, env), multiplier);
   let vel = acc.Geom.magnitude < 0.001 ? vel : Geom.addVectors(vel, acc);
   let vel = Geom.scaleVector(vel, med);
   let vel = Geom.clampVector(vel, maxSpeed *. multiplier);
@@ -256,7 +256,8 @@ let pressedJump = (state, env) => {
     let pos = Geom.fromIntTuple(Env.mouse(env));
     let width = Env.width(env);
     let height = Env.height(env);
-    Geom.dist(pos, {Geom.x: joystickSize, y: float_of_int(height) -. joystickSize}) < joystickSize /. 3.
+    /* Geom.dist(pos, joystickPos(env)) < joystickSize /. 3. */
+    Geom.dist(pos, state.player.pos) < 20.
   })
 };
 
