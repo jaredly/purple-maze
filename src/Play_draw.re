@@ -57,7 +57,6 @@ let lightForMazeSize = size => {
   } else {
     8.
   }
-
 };
 
 let lightSize = (player, mazeSize) => player.size *. lightForMazeSize(mazeSize);
@@ -82,6 +81,25 @@ let drawLights = ({player}, light, env) => {
   Draw.fill(background, env);
   /* let light = 800.; */
   Draw.ellipsef(~center=Geom.tuple(player.pos), ~radx=light, ~rady=light, env);
+};
+
+let drawFlashlight = ({player}, light, env) => {
+  Draw.fill(background, env);
+  /* let light = 800.; */
+  /* Draw.ellipsef(~center=Geom.tuple(player.pos), ~radx=light, ~rady=light, env); */
+
+  let theta = player.vel.Geom.theta;
+  let pi = 3.14159;
+  Draw.arcf(
+    ~center=Geom.tuple(player.pos),
+    ~radx=light,
+    ~rady=light,
+    ~start=theta -. pi /. 6.,
+    ~stop=theta +. pi /. 6.,
+    ~isOpen=false,
+    ~isPie=true,
+    env
+  )
 };
 
 let drawWalls = (walls, ~textFont=?, color, env) => {
@@ -236,7 +254,8 @@ let drawStatus = (textFont, state, env) => {
 let draw = ({player, walls, target, jumpTimer, jumping, path} as state, {Shared.textFont, width, height}, env) => {
   Draw.background(purple, env);
 
-  drawLights(state, lightSize(player, state.mazeSize), env);
+  /* drawLights(state, lightSize(player, state.mazeSize), env); */
+  drawFlashlight(state, lightSize(player, state.mazeSize), env);
   drawJump(state, env);
   drawWalls(state.walls, ~textFont, purple, env);
   drawPath(state, env);
@@ -355,5 +374,5 @@ let draw = (status, context, env) => {
       }
   }
   };
-  drawJoystick(env);
+  /* drawJoystick(env); */
 };

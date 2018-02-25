@@ -27,7 +27,8 @@ let setup = (assetDir, env) => {
   let height = Reprocessing.Env.height(env) |> float_of_int;
   let width = Reprocessing.Env.width(env) |> float_of_int;
 
-  let size = 13;
+  /* let size = 17; */
+  /* let size = 13; */
   let size = 5;
   /* let size = 3; */
 

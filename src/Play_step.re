@@ -91,7 +91,7 @@ let makeMaze = (~size=10, curPos, env) => {
 
   let player = Man.tileCenter(state, playerCoord) |> offset;
   let max = Array.fold_left((m, (_, dist)) => max(m, dist), 0, distances);
-  let targetDist = max * 3 / 4;
+  let targetDist = max * 7 / 8;
   let potentialGoals = Array.fold_left((matching, (pos, dist)) => dist == targetDist ? [pos, ...matching] : matching, [], distances);
   let count = List.length(potentialGoals);
   let goal = List.nth(potentialGoals, Random.int(count));
