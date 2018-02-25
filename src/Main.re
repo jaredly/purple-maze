@@ -27,6 +27,8 @@ let setup = (assetDir, env) => {
   let height = Reprocessing.Env.height(env) |> float_of_int;
   let width = Reprocessing.Env.width(env) |> float_of_int;
 
+  /** This size pegs my cpu drawing the walls */
+
   /* let size = 17; */
   /* let size = 13; */
   let size = 5;
