@@ -9,13 +9,15 @@ let setup = (assetDir, env) => {
     Reprocessing.Env.resizeable(false, env);
   };
 
-  if (!Shared.isPhone) {
+  let size = if (!Shared.isPhone) {
     if (Reprocessing.Env.maxWidth(env) < 800 && Reprocessing.Env.maxHeight(env) < 800) {
       Reprocessing.Env.size(~width=Reprocessing.Env.maxWidth(env), ~height=Reprocessing.Env.maxHeight(env), env);
+      5
     } else {
       Reprocessing.Env.size(~width=800, ~height=800, env);
+      6
     };
-  } else if (Shared.fakePhone) {
+  /* } else if (Shared.fakePhone) {
     switch (getEnv("TABLET")) {
     | Some("7") => Reprocessing.Env.size(~width=600, ~height=1024, env)
     | Some("10") => Reprocessing.Env.size(~width=800, ~height=1280, env)
@@ -23,7 +25,9 @@ let setup = (assetDir, env) => {
     | Some("iostab") => Reprocessing.Env.size(~width=2048/4 + 1, ~height=2732/4 + 1, env)
     | Some(_)
     | None => Reprocessing.Env.size(~width=340, ~height=640, env)
-    }
+    } */
+  } else {
+    5
   };
 
   /* Random.init(100); */
@@ -31,10 +35,10 @@ let setup = (assetDir, env) => {
   let width = Reprocessing.Env.width(env) |> float_of_int;
 
   /** This size pegs my cpu drawing the walls */
-
   /* let size = 17; */
+
   /* let size = 13; */
-  let size = 5;
+  /* let size = 5; */
   /* let size = 3; */
 
   let context = {
