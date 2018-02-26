@@ -9,9 +9,11 @@ let module LineSet = Set.Make({
 type player = {pos: Geom.point, vel: Geom.vector, size: float};
 
 type tapState = OffTarget | NotDown | Down(Geom.point, float) | Moved;
+type lastInputMethod = Keyboard | Mouse;
 
 type state = {
   tapState,
+  lastInputMethod,
   walls: list(Mazere.Border.t),
   coords: array((string, (float, float))),
   distances: array(((float, float), int)),

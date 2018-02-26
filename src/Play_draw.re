@@ -86,13 +86,13 @@ let drawLights = ({player}, light, env) => {
   Draw.ellipsef(~center=Geom.tuple(player.pos), ~radx=light, ~rady=light, env);
 };
 
-let drawFlashlight = ({player}, light, env) => {
+let drawFlashlight = ({player, lastInputMethod}, light, env) => {
   Draw.fill(background, env);
   /* let light = 800.; */
   /* Draw.ellipsef(~center=Geom.tuple(player.pos), ~radx=light, ~rady=light, env); */
 
   /* Mostly want a "mouse ever pressed" */
-  let theta = Env.mousePressed(env)
+  let theta = lastInputMethod == Mouse
     ? Geom.angleTo(player.pos, Geom.fromIntTuple(Env.mouse(env)))
     : player.vel.Geom.theta;
   Draw.arcf(
@@ -254,13 +254,13 @@ let drawStatus = (textFont, state, env) => {
   /* let rs = string_of_float(ratio); */
   Draw.text(~font=textFont, ~body=
   Printf.sprintf(
-    "%d / %d : %0.3f",
+    "%d / %d : %0.2f",
     count, state.goalDistance, ratio
   )
   , ~pos=(10, 10), env);
 
   let time = (Env.getTimeMs(env) -. state.startTime) /. 1000.;
-  Draw.text(~font=textFont, ~body=Printf.sprintf("%0.3f",  float_of_int(count) /. time), ~pos=(10, 30), env);
+  Draw.text(~font=textFont, ~body=Printf.sprintf("%0.1f",  float_of_int(count) /. time), ~pos=(10, 30), env);
 };
 
 let draw = ({player, walls, target, jumpTimer, jumping, path} as state, {Shared.textFont, width, height}, env) => {

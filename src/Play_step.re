@@ -116,6 +116,7 @@ let makeMaze = (~size=10, curPos, env) => {
   /* (walls, player, goal, tileCenter, coords, distances); */
   {
       tileCenter,
+      lastInputMethod: Keyboard,
       coords,
       distances,
       tapState: NotDown,
@@ -145,7 +146,7 @@ let initialState = (size, env) => {
 };
 
 let newGame = (~size, state, env) => {
-  makeMaze(~size, Some(state.player.pos), env);
+  {...makeMaze(~size, Some(state.player.pos), env), lastInputMethod: state.lastInputMethod};
 };
 
 let speed = 0.5;
@@ -204,17 +205,17 @@ let joystickPos = env => {
 
 let minPlayerTouchDistance = 20.;
 
-let userInput = (playerSize, playerPos, env) => {
+let userInput = (playerSize, playerPos, lastInputMethod, env) => {
   if (Env.mousePressed(env)) {
     let pos = Geom.fromIntTuple(Env.mouse(env));
     if (Geom.dist(pos, playerPos) < max(playerSize, minPlayerTouchDistance)) {
-      Geom.v0
+      (Geom.v0, Mouse)
     } else {
       let width = Env.width(env) |> float_of_int;
       let height = Env.height(env) |> float_of_int;
       /* let joystick = joystickPos(env); */
       let angle = Geom.angleTo(playerPos, pos);
-      {Geom.theta: angle, magnitude: speed}
+      ({Geom.theta: angle, magnitude: speed}, Mouse)
     }
   } else {
     let (ax, ay, any) = List.fold_left(
@@ -229,11 +230,15 @@ let userInput = (playerSize, playerPos, env) => {
       keys
     );
 
-    Geom.pectorToVector({Geom.dx: ax, dy: ay})
+    if (ax != 0. || ay != 0.) {
+      (Geom.pectorToVector({Geom.dx: ax, dy: ay}), Keyboard)
+    } else {
+      (Geom.v0, lastInputMethod)
+    }
   }
 };
 
-let movePlayer = ({player: {pos, vel, size}, walls}, env) => {
+let movePlayer = ({player: {pos, vel, size}, walls, lastInputMethod}, env) => {
 
   let multiplier = size /. 15.;
 
@@ -242,7 +247,8 @@ let movePlayer = ({player: {pos, vel, size}, walls}, env) => {
 
   let slow = 0.8;
   let med = 0.9;
-  let acc = Geom.scaleVector(userInput(size, pos, env), multiplier);
+  let (input, inputMethod) = userInput(size, pos, lastInputMethod, env);
+  let acc = Geom.scaleVector(input, multiplier);
   let vel = acc.Geom.magnitude < 0.001 ? vel : Geom.addVectors(vel, acc);
   let vel = Geom.scaleVector(vel, med);
   let vel = Geom.clampVector(vel, maxSpeed *. multiplier);
@@ -253,7 +259,7 @@ let movePlayer = ({player: {pos, vel, size}, walls}, env) => {
   /* let x = player.x +. dx;
   let y = player.y +. dy; */
   /* Geom.scaleVector(vel, speed) */
-  {pos: Geom.addVectorToPoint(vel, pos), vel, size}
+  ({pos: Geom.addVectorToPoint(vel, pos), vel, size}, inputMethod)
 };
 
 let pressedJump = (state, env) => {
@@ -302,16 +308,17 @@ let step = ({player, walls, target} as state, env) => {
     }
     : NotDown};
 
-  let player = switch state.tapState {
-  | Down(_) => state.player
+  let (player, lastInputMethod) = switch state.tapState {
+  | Down(_) => (state.player, state.lastInputMethod)
   | _ => switch state.jumping {
     | None => movePlayer(state, env);
-    | _ => state.player
+    | _ => (state.player, state.lastInputMethod)
     }
   };
 
   let state = {
     ...state,
+    lastInputMethod,
     jumpTimer: Timer.inc(state.jumpTimer, env),
     jumping: switch state.jumping {
     | None => None
