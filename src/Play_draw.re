@@ -59,6 +59,9 @@ let lightForMazeSize = size => {
   }
 };
 
+let pi = 3.14159;
+let tau = pi *. 2.;
+
 let lightSize = (player, mazeSize) => player.size *. lightForMazeSize(mazeSize);
 
 let drawJump = ({jumping, player} as state, env) => {
@@ -92,7 +95,6 @@ let drawFlashlight = ({player}, light, env) => {
   let theta = Env.mousePressed(env)
     ? Geom.angleTo(player.pos, Geom.fromIntTuple(Env.mouse(env)))
     : player.vel.Geom.theta;
-  let pi = 3.14159;
   Draw.arcf(
     ~center=Geom.tuple(player.pos),
     ~radx=light,
@@ -217,19 +219,26 @@ let drawScore = (player, score, scale, alpha, env) => {
   })
 };
 
-let drawPlayer = (player, scale, env) => {
+let drawPlayer = (player, scale, jumpTimer, env) => {
   Draw.noStroke(env);
   Draw.fill(darker, env);
-  Draw.ellipsef(~center=Geom.tuple(player.pos), ~radx=player.size *. scale, ~rady=player.size *. scale, env);
-  /* let dist = player.size *. scale *. 2.;
-  let starSize = player.size *. 0.75 *. scale;
-  let pos = angleFrom(Geom.tuple(player.pos), -. pi /. 2., dist);
-  goldStar(~pos=pos, ~size=starSize, env);
-  let pos = angleFrom(Geom.tuple(player.pos), -. pi /. 2. +. pi /. 3., dist);
-  goldStar(~pos=pos, ~size=starSize, env);
-  let pos = angleFrom(Geom.tuple(player.pos), -. pi /. 2. -. pi /. 3., dist);
-  goldStar(~pos=pos, ~size=starSize, env); */
-  /* drawScore(player, {pathLength: 1., avgSpeed: 1., stars: Two}, 1., 1., env); */
+  let size = player.size *. scale;
+  Draw.ellipsef(~center=Geom.tuple(player.pos), ~radx=size, ~rady=size, env);
+
+  Draw.stroke(Reprocessing.Utils.color(~r=0, ~g=0, ~b=0, ~a=50), env);
+  Draw.strokeWeight(int_of_float(size /. 4.), env);
+  Draw.noFill(env);
+  Draw.arcf(
+    ~center=Geom.tuple(player.pos),
+    ~radx=size *. 0.8,
+    ~rady=size *. 0.8,
+    ~start=0.,
+    ~stop=Timer.percent(jumpTimer) *. tau,
+    ~isPie=false,
+    ~isOpen=true,
+    env
+  );
+  Draw.noStroke(env);
 };
 
 let drawGoal = (size, target, alpha, env) => {
@@ -248,10 +257,10 @@ let drawStatus = (textFont, state, env) => {
     "%d / %d : %0.3f",
     count, state.goalDistance, ratio
   )
-  , ~pos=(40, 10), env);
+  , ~pos=(10, 10), env);
 
   let time = (Env.getTimeMs(env) -. state.startTime) /. 1000.;
-  Draw.text(~font=textFont, ~body=Printf.sprintf("%0.3f",  float_of_int(count) /. time), ~pos=(40, 30), env);
+  Draw.text(~font=textFont, ~body=Printf.sprintf("%0.3f",  float_of_int(count) /. time), ~pos=(10, 30), env);
 };
 
 let draw = ({player, walls, target, jumpTimer, jumping, path} as state, {Shared.textFont, width, height}, env) => {
@@ -271,9 +280,9 @@ let draw = ({player, walls, target, jumpTimer, jumping, path} as state, {Shared.
     drawPlayerShadow(state.player, p, env);
     1. +. p
   }
-  }, env);
+  }, state.jumpTimer, env);
 
-  drawPower(jumpTimer, env);
+  /* drawPower(jumpTimer, env); */
   /* This was just for debugging I think */
   drawStatus(textFont, state, env);
 
@@ -303,9 +312,9 @@ let flyIn = (state, percent, env) => {
   drawWalls(state.walls, purple, env);
   drawGoal(state.player.size, state.target, 1., env);
   drawPlayerShadow(state.player, an, env);
-  drawPlayer(state.player, an +. 1., env);
+  drawPlayer(state.player, an +. 1., state.jumpTimer, env);
 
-  drawPower(state.jumpTimer, env);
+  /* drawPower(state.jumpTimer, env); */
 };
 
 let flyOut = (state, nextState, percent, score, context, env) => {
@@ -327,13 +336,13 @@ let flyOut = (state, nextState, percent, score, context, env) => {
   };
 
   drawPlayerShadow(player, an, env);
-  drawPlayer(player, an +. 1., env);
+  drawPlayer(player, an +. 1., state.jumpTimer, env);
 
   let fade = percent > 0.7 ? Geom.Ease.easeInQuad((1.0 -. percent) /. 0.3) : 1.;
   drawScore(player, score, an +. 1., fade, env);
 
 
-  drawPower(state.jumpTimer, env);
+  /* drawPower(state.jumpTimer, env); */
 
   /* let (x, y) = Geom.intTuple(state.player.pos);
   Draw.text(~font=context.Shared.titleFont, ~body=switch score.stars {

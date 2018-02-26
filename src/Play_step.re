@@ -362,7 +362,7 @@ let step = ({player, walls, target} as state, env) => {
       state.path,
       isAtTarget ? left : [(pos, state.tileCenter(target)), ...left]
     );
-    `Won({...state, path})
+    `Won({...state, path, jumpTimer: Timer.fill(state.jumpTimer)})
   } else {
     `Continue({...state, player})
   }
