@@ -25,7 +25,6 @@ type state = {
   mazeSize: int,
   currentPos: (float, float),
   tileCenter: ((float, float)) => (float, float),
-  /* maze: mazeG, */
   player,
   target: (float, float),
   jumpTimer: Timer.t,

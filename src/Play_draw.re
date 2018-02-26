@@ -251,13 +251,7 @@ let drawGoal = (size, target, alpha, env) => {
 let drawStatus = (textFont, state, env) => {
   let count = LineSet.cardinal(state.path);
   let ratio = float_of_int(count) /. float_of_int(state.goalDistance);
-  /* let rs = string_of_float(ratio); */
-  Draw.text(~font=textFont, ~body=
-  Printf.sprintf(
-    "%d / %d : %0.2f",
-    count, state.goalDistance, ratio
-  )
-  , ~pos=(10, 10), env);
+  Draw.text(~font=textFont, ~body=Printf.sprintf("%d / %d : %0.2f", count, state.goalDistance, ratio), ~pos=(10, 10), env);
 
   let time = (Env.getTimeMs(env) -. state.startTime) /. 1000.;
   Draw.text(~font=textFont, ~body=Printf.sprintf("%0.1f",  float_of_int(count) /. time), ~pos=(10, 30), env);
@@ -282,7 +276,6 @@ let draw = ({player, walls, target, jumpTimer, jumping, path} as state, {Shared.
   }
   }, state.jumpTimer, env);
 
-  /* drawPower(jumpTimer, env); */
   /* This was just for debugging I think */
   drawStatus(textFont, state, env);
 
