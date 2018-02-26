@@ -28,7 +28,7 @@
   }],
   "refmt": 3,
   "icon": "./icons/icon.png",
-  "appName": "Purple Maze",
+  "appName": "PurpleMaze",
   "iosPathName": "App",
   "androidPackage": "com.jaredforsyth.purplemaze",
 }

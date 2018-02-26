@@ -12,8 +12,8 @@ let step = ((size, num, status), context, env) => {
     switch (Play_step.step(status, context, env)) {
     | `Continue(status) => (size, num, status)
     | `Won(prevState) => {
-      let size = num == 5 ? size + 1 : size;
-      (size, num == 5 ? 0 : num + 1, Play_step.continue(prevState, size, env))
+      let size = num >= 4 ? size + 1 : size;
+      (size, num >= 4 ? 0 : num + 1, Play_step.continue(prevState, size, env))
     }
     }
   }
