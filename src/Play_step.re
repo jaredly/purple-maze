@@ -204,10 +204,10 @@ let joystickPos = env => {
 
 let minPlayerTouchDistance = 20.;
 
-let userInput = (playerPos, env) => {
+let userInput = (playerSize, playerPos, env) => {
   if (Env.mousePressed(env)) {
     let pos = Geom.fromIntTuple(Env.mouse(env));
-    if (Geom.dist(pos, playerPos) < minPlayerTouchDistance) {
+    if (Geom.dist(pos, playerPos) < max(playerSize, minPlayerTouchDistance)) {
       Geom.v0
     } else {
       let width = Env.width(env) |> float_of_int;
@@ -242,7 +242,7 @@ let movePlayer = ({player: {pos, vel, size}, walls}, env) => {
 
   let slow = 0.8;
   let med = 0.9;
-  let acc = Geom.scaleVector(userInput(pos, env), multiplier);
+  let acc = Geom.scaleVector(userInput(size, pos, env), multiplier);
   let vel = acc.Geom.magnitude < 0.001 ? vel : Geom.addVectors(vel, acc);
   let vel = Geom.scaleVector(vel, med);
   let vel = Geom.clampVector(vel, maxSpeed *. multiplier);
@@ -263,7 +263,7 @@ let pressedJump = (state, env) => {
     let width = Env.width(env);
     let height = Env.height(env);
     /* Geom.dist(pos, joystickPos(env)) < joystickSize /. 3. */
-    Geom.dist(pos, state.player.pos) < minPlayerTouchDistance
+    Geom.dist(pos, state.player.pos) < max(state.player.size, minPlayerTouchDistance)
   })
 };
 
@@ -293,7 +293,7 @@ let step = ({player, walls, target} as state, env) => {
     | OffTarget => OffTarget
     | _ => {
       let mouse = Geom.fromIntTuple(Reprocessing.Env.mouse(env));
-      if (Geom.dist(mouse, state.player.pos) < minPlayerTouchDistance) {
+      if (Geom.dist(mouse, state.player.pos) < max(state.player.size, minPlayerTouchDistance)) {
         Down(mouse, Reprocessing.Env.getTimeMs(env))
       } else {
         OffTarget
