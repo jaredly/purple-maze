@@ -47,9 +47,9 @@ let jumpPercent = ((timer, height)) => {
 
 let lightForMazeSize = size => {
   if (size <= 6) {
-    4.
+    6. /* 4 */
   } else if (size <= 8) {
-    5.
+    6. /* 5 */
   } else if (size <= 10) {
     6.
   } else if (size <= 13) {
@@ -88,7 +88,10 @@ let drawFlashlight = ({player}, light, env) => {
   /* let light = 800.; */
   /* Draw.ellipsef(~center=Geom.tuple(player.pos), ~radx=light, ~rady=light, env); */
 
-  let theta = player.vel.Geom.theta;
+  /* Mostly want a "mouse ever pressed" */
+  let theta = Env.mousePressed(env)
+    ? Geom.angleTo(player.pos, Geom.fromIntTuple(Env.mouse(env)))
+    : player.vel.Geom.theta;
   let pi = 3.14159;
   Draw.arcf(
     ~center=Geom.tuple(player.pos),

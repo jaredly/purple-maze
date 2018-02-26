@@ -118,7 +118,7 @@ let makeMaze = (~size=10, curPos, env) => {
       tileCenter,
       coords,
       distances,
-      mouseWasDown: false,
+      tapState: NotDown,
       goalDistance: targetDist,
       pathTimer: Timer.createEmpty(pathTime),
       pendingPath: MyQueue.empty,
@@ -202,14 +202,20 @@ let joystickPos = env => {
   {Geom.x: joystickSize +. joystickMargin, y: height -. joystickMargin -. joystickSize};
 };
 
+let minPlayerTouchDistance = 20.;
+
 let userInput = (playerPos, env) => {
   if (Env.mousePressed(env)) {
     let pos = Geom.fromIntTuple(Env.mouse(env));
-    let width = Env.width(env) |> float_of_int;
-    let height = Env.height(env) |> float_of_int;
-    /* let joystick = joystickPos(env); */
-    let angle = Geom.angleTo(playerPos, pos);
-    {Geom.theta: angle, magnitude: speed}
+    if (Geom.dist(pos, playerPos) < minPlayerTouchDistance) {
+      Geom.v0
+    } else {
+      let width = Env.width(env) |> float_of_int;
+      let height = Env.height(env) |> float_of_int;
+      /* let joystick = joystickPos(env); */
+      let angle = Geom.angleTo(playerPos, pos);
+      {Geom.theta: angle, magnitude: speed}
+    }
   } else {
     let (ax, ay, any) = List.fold_left(
       ((dx, dy, any), (k, (ax, ay))) => {
@@ -252,12 +258,12 @@ let movePlayer = ({player: {pos, vel, size}, walls}, env) => {
 
 let pressedJump = (state, env) => {
   Env.keyPressed(Events.Space, env) ||
-  (!state.mouseWasDown && Env.mousePressed(env) && {
+  (!Env.mousePressed(env) && (switch (state.tapState) { | Down(_, _) => true | _ => false }) && {
     let pos = Geom.fromIntTuple(Env.mouse(env));
     let width = Env.width(env);
     let height = Env.height(env);
     /* Geom.dist(pos, joystickPos(env)) < joystickSize /. 3. */
-    Geom.dist(pos, state.player.pos) < 20.
+    Geom.dist(pos, state.player.pos) < minPlayerTouchDistance
   })
 };
 
@@ -275,11 +281,33 @@ let step = ({player, walls, target} as state, env) => {
     state
   };
 
-  let state = {...state, mouseWasDown: Env.mousePressed(env)};
+  let state = {...state, tapState: Env.mousePressed(env)
+    ? switch state.tapState {
+    | Down(pos, startTime) => {
+      if (Geom.dist(pos, Geom.fromIntTuple(Reprocessing.Env.mouse(env))) > 10.) {
+        Moved
+      } else {
+        Down(pos, startTime)
+      }
+    }
+    | OffTarget => OffTarget
+    | _ => {
+      let mouse = Geom.fromIntTuple(Reprocessing.Env.mouse(env));
+      if (Geom.dist(mouse, state.player.pos) < minPlayerTouchDistance) {
+        Down(mouse, Reprocessing.Env.getTimeMs(env))
+      } else {
+        OffTarget
+      }
+    }
+    }
+    : NotDown};
 
-  let player = switch state.jumping {
-  | None => movePlayer(state, env);
-  | _ => state.player
+  let player = switch state.tapState {
+  | Down(_) => state.player
+  | _ => switch state.jumping {
+    | None => movePlayer(state, env);
+    | _ => state.player
+    }
   };
 
   let state = {

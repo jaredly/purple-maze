@@ -10,8 +10,11 @@ let setup = (assetDir, env) => {
   };
 
   if (!Shared.isPhone) {
-    let size = min(Reprocessing.Env.maxHeight(env), 800);
-    Reprocessing.Env.size(~width=size / 2, ~height=size, env);
+    if (Reprocessing.Env.maxWidth(env) < 800 && Reprocessing.Env.maxHeight(env) < 800) {
+      Reprocessing.Env.size(~width=Reprocessing.Env.maxWidth(env), ~height=Reprocessing.Env.maxHeight(env), env);
+    } else {
+      Reprocessing.Env.size(~width=800, ~height=800, env);
+    };
   } else if (Shared.fakePhone) {
     switch (getEnv("TABLET")) {
     | Some("7") => Reprocessing.Env.size(~width=600, ~height=1024, env)

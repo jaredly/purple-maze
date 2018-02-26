@@ -8,8 +8,10 @@ let module LineSet = Set.Make({
 
 type player = {pos: Geom.point, vel: Geom.vector, size: float};
 
+type tapState = OffTarget | NotDown | Down(Geom.point, float) | Moved;
+
 type state = {
-  mouseWasDown: bool,
+  tapState,
   walls: list(Mazere.Border.t),
   coords: array((string, (float, float))),
   distances: array(((float, float), int)),
