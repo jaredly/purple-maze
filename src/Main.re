@@ -29,6 +29,7 @@ let setup = (assetDir, env) => {
     | None => Reprocessing.Env.size(~width=340, ~height=640, env)
     } */
   } else {
+    /* Reprocessing.Draw.strokeCap(Reprocessing_Common.Project, env); */
     5
   };
 
