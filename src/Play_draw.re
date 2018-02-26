@@ -4,6 +4,7 @@ open Reprocessing;
 let purple = Reprocessing.Utils.color(~r=255, ~g=0, ~b=255, ~a=255);
 let darker = Reprocessing.Utils.color(~r=200, ~g=0, ~b=255, ~a=255);
 let shadow = Reprocessing.Utils.color(~r=150, ~g=0, ~b=200, ~a=100);
+let textColor = Reprocessing.Utils.color(~r=150, ~g=0, ~b=200, ~a=255);
 let background = Utils.color(~r=255, ~g=220, ~b=255, ~a=255);
 let pathColor = Utils.color(~r=255, ~g=100, ~b=255, ~a=255);
 /* let pathColor = Utils.color(~r=245, ~g=0, ~b=255, ~a=255); */
@@ -257,7 +258,7 @@ let drawStatus = (textFont, state, env) => {
   Draw.text(~font=textFont, ~body=Printf.sprintf("%0.1f",  float_of_int(count) /. time), ~pos=(10, 30), env);
 };
 
-let draw = ({player, walls, target, jumpTimer, jumping, path} as state, {Shared.textFont, width, height}, env) => {
+let draw = ({player, walls, target, jumpTimer, jumping, path} as state, {Shared.textFont, smallFont, width, height}, env) => {
   Draw.background(purple, env);
 
   /* drawLights(state, lightSize(player, state.mazeSize), env); */
